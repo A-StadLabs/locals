@@ -1,0 +1,114 @@
+<!--
+  This little teenieweenie awesome polymer component lets you read and write data from and to localstorage, encrypted (salted) with a pincode or password.
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
+
+
+<dom-module id="labs002-localstorageapi">
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <template>
+
+    <iron-localstorage id="localstorage" name="labs002-data" value="{{encdata}}">
+  </iron-localstorage>
+
+  <iron-localstorage id="localstorage" name="labs002-user" value="{{encruserid}}">
+  </iron-localstorage>
+
+  </template>
+</dom-module>
+<script>
+(function() {
+
+  var stage;
+
+  window.addEventListener('WebComponentsReady', function() {
+      // imports are loaded and elements have been registered
+      stage = document.querySelector("labs002-stage");
+  });
+
+  Polymer({
+    is: 'labs002-localstorageapi',
+
+    properties: {
+      data: {
+        type: Object,
+        notify: true
+      },
+      userid: {
+        type: String,
+        observer: "_userid"
+      },
+      pincode: {
+        type: Number,
+        observer: "_pincode"
+      },
+      encdata: {
+        type: String,
+        notify: true,
+        observer: "_encdataChanged"
+      }
+    },
+
+    _pincode: function(){
+      console.log('got pin: ', this.pincode);
+    },
+
+    _userid: function(){
+      console.log('got userid: ', this.userid);
+    },
+
+    initEmpty: function(){
+      var data = { collection: {}, peers: [], lastupdate: Date.now() };
+      this.data = data;
+      //this.fire('init-data');
+      this.writeData();
+      //data written
+    },
+
+    writeData: function(){
+        var pin = this.pincode.toString();
+        console.log('Localstorage API write: ', this.data);
+        var object = this.data;
+        var stringifiedobject = JSON.stringify(object);
+        console.log(stringifiedobject);
+        var encrypted = CryptoJS.AES.encrypt(stringifiedobject, pin);
+        //console.log('Localstorage API encrypted: ',encrypted.toString());
+        this.encdata = encrypted.toString();
+        var peers = this.data.peers;
+        for (var i = peers.length - 1; i >= 0; i--) {
+          console.log('Save ook bij: ',peers[i]);
+          //stage.sendMessage(peers[i], "userupdate",this.encdata, this.encruserid);
+        };
+        this.readData();
+    },
+
+    readData: function(){
+        if(!this.encdata){
+          this.initEmpty();
+        } else {
+        var pin = this.pincode.toString();
+        //console.log('Localstorage API read: ', this.encdata);
+        var decrypted = CryptoJS.AES.decrypt(this.encdata, pin);
+        var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
+        console.log('Localstorage API decrypt: ',decrtostring);
+        var data = JSON.parse(decrtostring);
+        //console.log(data);
+        this.data = data;
+      };
+    },
+
+    _encdataChanged: function(){
+      console.log('encdata changed');
+      this.readData();
+    }
+  });
+})();
+</script>

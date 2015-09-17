@@ -10,7 +10,9 @@
     "strophe-openfire-websocket": "gunblues/strophe-openfire-websocket",
     "strophe.js": "strophe/strophejs#~1.2.2",
     "strophejs-plugins": "strophe/strophejs-plugins#~0.0.5",
-    "node-uuid": "~1.4.3"
+    "node-uuid": "~1.4.3",
+    "firebase-element": "GoogleWebcomponents/firebase-element#~1.0.6"
+
   },
   "devDependencies": {
     "web-component-tester": "*",

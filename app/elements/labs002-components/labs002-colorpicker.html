@@ -1,0 +1,189 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+
+<dom-module id="labs002-colorpicker">
+  <style>
+    :host {
+      display: block;
+    }
+iron-selector {
+      height: 100%;
+}
+      .colorpicker {
+      width: 100%;
+      height: 100%;
+      }
+
+
+      .iron-selected {
+      border-bottom: 1px solid black;
+      }
+
+      .coloritem {
+      width: 20px;
+      height: 20px;
+      }
+
+    .fillgreen {
+      fill: var(--primary-green);
+    }
+    .fillblue {
+      fill: var(--primary-blue);
+    }
+    .filllightblue {
+      fill: var(--primary-lightblue);
+    }
+    .filldarkblue {
+      fill: var(--primary-darkblue);
+    }
+    .fillred {
+      fill: var(--primary-red);
+    }
+    .fillyellow {
+      fill: var(--primary-yellow);
+    }
+    .fillpurple {
+      fill: var(--primary-purple);
+    }
+
+  </style>
+  <template>
+
+
+      <div class="colorpicker layout horizontal center-center">
+
+       <iron-selector id="colorpicker" selected="{{colorselected}}" attr-for-selected="color">
+
+<!--             <div class="coloritem green" color="green">
+            </div>
+
+            <div class="coloritem red" color="red">
+            </div>
+
+            <div class="coloritem blue" color="blue">
+            </div>
+
+            <div class="coloritem darkblue" color="darkblue">
+            </div>
+
+            <div class="coloritem lightblue" color="lightblue">
+            </div>
+
+            <div class="coloritem yellow" color="yellow">
+            </div>
+
+            <div class="coloritem purple" color="purple">
+            </div> -->
+
+            <svg color="green" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="fillgreen coloritem">
+            </svg>
+
+            <svg color="red" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="fillred coloritem">
+            </svg>
+
+            <svg color="blue" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="fillblue coloritem">
+            </svg>
+            <svg color="lightblue" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="filllightblue coloritem">
+            </svg>
+
+            <svg color="darkblue" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="filldarkblue coloritem">
+            </svg>
+
+            <svg color="yellow" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="fillyellow coloritem">
+            </svg>
+
+            <svg color="purple" version="1.1" id="Laag_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+             width="20px" height="20px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+            <rect class="fillpurple coloritem">
+            </svg>
+
+
+
+       </iron-selector>
+      </div>
+
+
+  </template>
+  <script>
+  (function() {
+    Polymer({
+      is: 'labs002-colorpicker',
+
+      behaviors: [
+      Polymer.NeonAnimatableBehavior
+      ],
+
+      properties: {
+          colorselected: {
+          type: String,
+          value: '',
+          notify: true,
+          observer: "_Colorwatcher"
+        },
+
+        itemtocolor: {
+          type: String,
+          value: '',
+          observer: "_Watchit"
+        },
+      },
+
+      ready: function(){
+      },
+
+
+      _Watchit: function(){
+            console.log('Item arrived at colorpicker!!!!! ******');
+      },
+
+      _Colorwatcher: function(){
+            console.log('Colorwatcher zegt:' , this.colorselected);
+      }
+
+
+
+    });
+  })();
+  </script>
+</dom-module>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
