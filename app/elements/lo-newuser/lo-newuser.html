@@ -1,0 +1,76 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animated-pages.html">
+
+<link rel="import" href="../dp-pin/dp-pin.html">
+
+<link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/slide-from-right-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/slide-left-animation.html">
+
+<link rel="import" href="../../bower_components/neon-animation/neon-animatable.html">
+
+<script src="../../bower_components/node-uuid/uuid.js"></script>
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
+<script src="../../bower_components/strophe.js/strophe.js"></script>
+<script src="../../bower_components/strophejs-plugins/muc/strophe.muc.js"></script>
+<script src="../../bower_components/strophe-openfire-websocket/strophe-openfire-websocket.js"></script>
+<script src="../../scripts/labs-locals.js"></script>
+
+<dom-module id="lo-newuser">
+  <template>
+    <style>
+      :host {
+        display: block;
+        background-color: gray;
+        width: 100%;
+        height: 100%;
+      }
+
+      neon-animated-pages {
+        height: 100%;
+      }
+    </style>
+
+    <neon-animated-pages id="pages" selected="{{selected}}" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
+
+      <dp-pin on-pin-entered="naarPin2" pin="{{pin1}}" titel="Kies een pincode." error="{{error}}" extrabtn="Ik heb al een toestel geactiveerd" on-naar-activ="naarActivatie"></dp-pin>
+
+      <dp-pin on-pin-entered="naarPinCheck" pin="{{pin2}}" titel="Herhaal de pincode." error="{{error}}">
+        </dp-pin>
+
+    </neon-animated-pages>
+  </template>
+  <script>
+  (function() {
+    'use strict';
+
+    Polymer({
+      is: 'lo-newuser',
+
+      properties: {
+        
+      },
+
+      attached: function(){
+        this.selected = 0;
+        this.entryAnimation = 'slide-from-right-animation';
+        this.exitAnimation = 'slide-left-animation';
+      },
+
+      naarPin2: function(){
+        this.selected = 1;
+      }
+    });
+  })();
+  </script>
+</dom-module>

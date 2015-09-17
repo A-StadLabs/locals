@@ -1,0 +1,273 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input-container.html">
+
+<dom-module id="dp-pin">
+  <style>
+    :host {
+      display: block;
+      --errorzichtbaar: hidden;
+    }
+
+    .canvas {
+      background-color: transparent;
+      width: 100%;
+      height: 100%;
+    }
+
+
+    .container {
+      height: 100%;
+    }
+
+
+
+
+    .pinvlak {
+      width: 65%;
+      max-width: 350px; 
+      @apply(--layout-center-center);
+    }
+
+    .centertexting {
+      text-align: center;
+    }
+
+
+
+
+/* ALL MATTERS PAPER-INPUT */
+
+    .paper-input-container-0 label, paper-input-char-counter, .paper-input-container-0 input {
+    /*font-family: 'Open Sans', sans-serif;*/
+    text-transform: capitalize;
+    }
+
+
+    .paper-input-container-0 input {
+      font-size: 30px;
+      line-height: 10px;
+      color: white;
+      font-weight: 600;
+      letter-spacing: 4px;
+    }
+
+    paper-input-char-counter {
+      color:rgba(0,0,0,0.35);
+    }
+
+    paper-input-container {
+            --paper-input-container-color:rgba(0,0,0,0.35);
+      --paper-input-container-focus-color: white;
+    }
+
+
+  h2 {
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      line-height: 125%;
+      color: white;
+  }
+
+
+  h3 {
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      color: white;
+      font-size: 14px;
+  }
+
+
+  .errorvlak {
+    visibility: var(--errorzichtbaar);
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 5px;
+    padding: 5px 10px 5px 10px;
+    box-sizing:border-box;
+  }
+
+
+
+  button {
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      padding: 20px;
+      margin: 0px 0px 60px 0px;
+      background-color: rgba(255,255,255,1);
+      color: var(--page-color);
+      outline: 0;
+      border: none;
+      text-align: center;
+      border-radius: 5px;
+      width: 200px;
+  }
+
+
+    button:hover {
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+    }
+
+    button:active {
+    box-shadow: 0px 0px 0px rgba(0,0,0,0.2);
+    }
+
+
+
+
+    a {
+            font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      color: white;
+      font-size: 11px;
+            text-decoration: underline;
+
+    }
+
+  a:hover {
+      color: rgba(0,0,0,0.85);
+  }
+
+
+  </style>
+  <template>
+  <div class="canvas" >
+
+
+<div class="layout vertical center-center container">
+  <div class="pinvlak centertexting layout vertical center-center">
+
+    <div class="errorzichtbaar errorvlak">
+    <!-- <h3>{{error}}</h3> -->
+    </div>
+
+
+    <h2>{{titel}}</h2>
+    <paper-input-container no-label-float>
+    <label class="centertexting">Pincode</label>
+
+    <input autofocus type="number" class="centertexting" is="iron-input" maxlength="4" prevent-invalid-input allowed-pattern="[0-9]" bind-value="{{pin}}" >
+  <paper-input-error>Only numbers are allowed!</paper-input-error>
+    </paper-input-container>
+    <button on-tap="PIN_OK">OK!</button>
+
+    <a on-tap="_Activate">{{extrabtn}}</a>
+
+
+<!-- <paper-input class="center" no-label-float label="pincode" type="password" allowed-pattern="[0-9]" maxlength="4">
+</paper-input>
+ -->
+  </div>
+  </div>
+
+  </div>
+
+  </template>
+  <script>
+  (function() {
+    Polymer({
+      is: 'dp-pin',
+
+      behaviors: [
+      Polymer.NeonAnimatableBehavior
+      ],
+
+      properties: {
+        pin: {
+          type: Number,
+          value: '',
+          notify: true
+        },
+
+        titel: {
+          type: String,
+          value: '',
+          notify: true
+        },
+
+        error: {
+          type: String,
+          value: '',
+          observer: '_errorshow',
+          notify: true
+
+        },
+
+        extrabtn: {
+          type: String,
+          value: '',
+          notify: true
+
+        },
+
+        value: function() {
+          return {
+            // 'entry': {
+            //   name: 'hero-animation',
+            //   id: 'hero',
+            //   toPage: this
+            // },
+            'exit': [{
+              name: 'transform-animation',
+              node: this.$.canvas
+            }, {
+              name: 'hero-animation',
+              id: 'hero',
+              fromPage: this
+            }]
+
+          };
+        }
+
+
+      },
+
+      PIN_OK:function() {
+        this.fire('pin-entered', {detail: this.pin});
+
+      },
+
+      _Activate:function() {
+        this.fire('naar-activ');
+
+      },
+
+
+      _Toggled: function(){
+       // console.log('Ahzo! Beetje opde A klikken??');
+       this.fire('yes');
+      },
+
+      ready:function(){
+        this.errorzichtbaar = false;
+        var that = this;
+        this.addEventListener('keypress', function(e){
+          if (e.keyCode == 13) {
+              that.PIN_OK();
+              //that.enter();
+              //ajax.go();
+              
+          };
+        });
+      },
+
+      _errorshow:function(){
+          //this.customStyle['--errorzichtbaar'] = 'visible';
+      }
+
+
+    });
+  })();
+  </script>
+</dom-module>
