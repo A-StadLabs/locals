@@ -211,3 +211,25 @@ See authors.md for a list of all members.
       //this.newarray = newarray;
       return newarray;
     };
+
+    function createOpenfireuser(username, pincode, fn){
+    console.log('Starting maakuser');
+    console.log('Strophe status: ',Strophe.Status);
+    var callback = function (status) {
+      console.log("status: ",status);
+        if (status === Strophe.Status.REGISTER) {
+          var that = this;
+          console.log('trying to register user: ', username, ' pass:',pincode);
+            conn2.register.fields.username = username;
+            conn2.register.fields.password = pincode;
+            conn2.register.submit();
+        } else if (status === Strophe.Status.REGISTERED) {
+            console.log("registered!");
+            
+             if (fn) {
+                fn();
+            };
+            
+        };
+    };
+  };

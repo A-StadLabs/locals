@@ -1,0 +1,87 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="../../bower_components/node-uuid/uuid.js"></script>
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
+<link rel="import" href="../labs002-registeruser/labs002-registeruser.html">
+
+<dom-module id="labs002-newopenfireuser">
+  <style>
+    :host {
+      display: block;
+      @apply(--layout-fit);
+      --page-color:  var(--primary-green);
+    }
+
+    .color {
+      background-color: var(--page-color);
+    }
+
+    neon-animated-pages {
+      height: 100%;
+    }
+
+  </style>
+  <template>
+
+
+
+      <iron-localstorage id="openfire1" name="labs002-openfire1">
+        </iron-localstorage>
+        <iron-localstorage id="openfire2" name="labs002-openfire2">
+        </iron-localstorage>
+
+        <labs002-registeruser id="registeruser" on-user-created="_openfireUsercreated"></labs002-registeruser>
+
+
+  </template>
+</dom-module>
+<script>
+(function() {
+
+  Polymer({
+    is: 'labs002-newopenfireuser',
+
+    properties: {
+      foo: {
+        type: String,
+        value: 'bar',
+        notify: true
+      }
+    },
+
+    ready: function(){
+      
+    },
+
+    _createOpenFireUser: function(){
+        var openfireuser = uuid.v1();
+        var openfirepass = uuid.v4();
+        this.$.registeruser.username = openfireuser;
+        this.$.registeruser.pincode = openfirepass;
+        this.$.registeruser.go();
+    },
+
+    _openfireUsercreated: function(){
+      console.log('--- OpenFire registration success ---');
+      var openfire1 = this.$.registeruser.username;
+      var openfire2 = this.$.registeruser.pincode;
+      console.log('--- OpenFire account saved in localstorage ---');
+      this.$.openfire1.value = openfire1;
+      this.$.openfire2.value = openfire2;
+      window.location = '/';
+    }
+
+
+
+  });
+})();
+</script>

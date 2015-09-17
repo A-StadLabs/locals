@@ -1,0 +1,310 @@
+<!-- Copyright (c) 2015 The Locals Project Authors. All rights reserved.
+See authors.md for a list of all members.
+ -->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="../../scripts/crypto-aes.js"></script>
+<script src="../../bower_components/strophe.js/strophe.js"></script>
+<script src="../../bower_components/strophejs-plugins/muc/strophe.muc.js"></script>
+<script src="../../bower_components/strophe-openfire-websocket/strophe-openfire-websocket.js"></script>
+<script src="../../scripts/labs-locals.js"></script>
+
+<dom-module id="labs002-stage">
+<style>
+  :host {
+    display: block;
+    --page-color:  var(--primary-blue);
+    width: 100%;
+    height: 100%;
+  }
+
+  .canvas {
+    background-color: var(--page-color);
+    color: white; 
+    height: 100%;
+    @apply(--layout-vertical);
+    @apply(--layout-center-center);
+    text-align: center;
+  }
+
+  .color {
+    background-color: var(--page-color);
+  }
+
+  neon-animated-pages {
+    height: 100%;
+  }
+
+  labs002-objectscollection {
+    height: 100%;
+  }
+
+</style>
+<template>
+
+  <iron-localstorage 
+    id="localstorage" 
+    name="labs002-user" 
+    value="{{encruserid}}">
+  </iron-localstorage>
+
+  <iron-localstorage 
+    id="openfire1" 
+    name="labs002-openfire1" 
+    value="{{openfire1}}">
+  </iron-localstorage>
+  
+  <iron-localstorage 
+    id="openfire2" 
+    name="labs002-openfire2" 
+    value="{{openfire2}}">
+  </iron-localstorage>
+
+  <labs002-localstorageapi 
+    id="localapielem" 
+    userid="{{userid}}" 
+    pincode="{{pin1}}" 
+    data="{{localapi}}" 
+    encdata="{{localenc}}">
+  </labs002-localstorageapi>
+
+  <neon-animated-pages id="pages" selected="0" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
+
+  <!-- Stage 0: Pincode ingeven (bestaande gebruiker) -->
+  <dp-pin on-yes="toggleDrawer" on-pin-entered="decryptUser" pin="{{pin1}}" titel="Geef je pincode in." error="{{error}}">
+  </dp-pin>
+
+  <!-- Stage 1: Alle datasets renderen -->
+<!--   <button on-tap="_addDataset">+</button>
+ -->  <labs002-objectscollection 
+    id="objectcoll" 
+    userid="{{userid}}" 
+    objectsdata="{{localapi}}" 
+    class="color"
+    loggedin="{{loggedin}}">
+  </labs002-objectscollection>
+
+  <!-- Stage 2: De geopende state van het object -->
+  <div id="objectplaceholder"></div>
+
+  <!-- Stage 3: QR code lezer -->
+  <neon-animatable>
+    <div class="canvas">
+      <labs002-qrreader></labs002-qrreader>
+    </div>
+  </neon-animatable>
+
+  <!-- Stage 4: QR code / Identificatie weergeven -->
+  <neon-animatable>
+    <div class="canvas">
+      <button on-tap="_toWhere">back</button>
+      <alabs-qrcode code="{{openfire1}}"></alabs-qrcode>
+    </div>
+  </neon-animatable>
+
+  <!-- Stage 5: Dialog: actie goedkeuren of weigeren. -->
+  <neon-animatable>
+    <div class="canvas">
+      Hier komt de dialog.
+    </div>
+  </neon-animatable>
+
+  <!-- Stage 6: Plusmenu om objecten toe te voegen. -->
+  <neon-animatable>
+    <div class="canvas">
+      <labs002-objectpicker userobjects="{{localapi}}"></labs002-objectpicker>
+    </div>
+  </neon-animatable>
+
+</neon-animated-pages>
+
+</template>
+</dom-module>
+<script>
+  (function() {
+
+    var conn; 
+
+    var partner;
+
+
+    var saveEncuserobject = function(e){
+      console.log(e);
+      app.localenc = e;
+    };
+
+    var changeStage = function(e){
+      stage.selected = e;
+    };
+
+    Polymer({
+      is: 'labs002-stage',
+
+      properties: {
+
+        selected: {
+          type: Number
+        }
+
+      },
+
+      /**
+     * Ready function to declare some variables and setup event listeners.
+     */
+
+      ready: function(){
+        //Dit staat hier voor de gemakkelijkheid
+        //this.pin1 = '1234';
+
+        this.loggedin = false;
+
+        this.selected = 0;
+
+        this.entryAnimation = 'slide-from-right-animation';
+        this.exitAnimation = 'slide-left-animation';
+
+        var that = this;
+        
+        this.addEventListener('change-stage', function(e){
+          console.log('Changing stage', e);
+          that.selected = e.detail.stage;
+        });
+        
+        this.addEventListener('save', function(){
+          console.log('Saving whole dataset: ', this.localapi);
+          //that.localapi = e.detail.dataset;
+          that.$.localapielem.writeData();
+        });
+
+        this.addEventListener('object-picker', function(){
+          this.selected = 6;
+        });
+
+        this.addEventListener('qr-identity', function(e){
+          that._toQR();
+        });
+
+        this.addEventListener('qr-reader', function(e){
+          that._qrreader(e);
+        });
+      
+
+      },
+
+      senduserobject: function(){
+        console.log('send user object to: ', partner, ' This value: ', this.localenc);
+        this.localapi.peers.push(this.openfire1+'@'+domein);
+        this.localapi.peers.push(partner);
+        this.$.localapielem.writeData();
+        this.sendMessage(partner, "heresuserobject",this.localenc, this.encruserid);
+        this.$.localapielem.readData();
+      },
+
+      /** * Dees functie opent de qr reader en wacht tot em iets terug krijgt. */
+
+      _qrreader: function(e){
+        this.importHref("../elements/labs002-qrreader/labs002-qrreader.html", function(g) {
+          this.addEventListener("got-code", function(f){
+            //Hier doet em shit als em een code terug krijgt. 
+            //this.$.objectcoll.callback(e.detail);
+            console.log('Got Code.', f.detail.partner);
+            console.log('partner: ', f.detail.partner);
+            console.log('Action to perform: ', e.detail.command);
+            console.log('Dataset: ', e.detail.objectname);
+            console.log('Config: ', e.detail.objectconfig);
+            console.log('Data: ', e.detail.objectdata);
+            var partner = f.detail.partner+"@"+domein;
+            var command = e.detail.command;
+            var objectname = e.detail.objectname;
+            var objectdata = e.detail.objectdata;
+            var objectconfig = e.detail.objectconfig;
+            sendMessage(partner, command, objectname, objectconfig, objectdata);
+          });
+        // e.target.import is the import document.
+        //console.log('import',e);
+      }, function(g) {
+        //console.log('import',e);
+        // loading error
+      });
+        changeStage(3);
+      },
+
+      /** * Userobject decrypteren met ingegeven pin code */
+      decryptUser: function(){
+        var decrypted = CryptoJS.AES.decrypt(this.encruserid, this.pin1);
+        var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
+        
+        this.userid = decrtostring;
+        loginOpenfire(this.openfire1, this.openfire2, function(){
+          that.openfireconnect = true;        
+        });
+
+        this.loggedin = true;
+        
+        this.$.localapielem.readData();
+
+        this.selected = 1;
+      },   
+ 
+      // Navigational stuff
+      /** * This one shows the qr code associated with this device */
+      _toQR:function(){
+        changeStage(4);
+      },
+
+    _toWhere:function(){
+      this.entryAnimation = 'slide-from-left-animation';
+      this.exitAnimation = 'slide-right-animation';
+      changeStage(1);
+    },
+
+    _toScanner: function(){
+      changeStage(3);
+    },
+
+    _ConfirmGetuige: function(e) {
+      console.log('Yes, bevestigd!', e.target.user);
+      var partner = e.target.user;
+      var dataset = e.target.dataset;
+      this.sendMessage(partner, "confirmgetuige", dataset, data);
+    },
+
+    _CancelGetuige: function() {
+      console.log('Neen, annuleren!');
+    },
+
+     /** * Wordt nog niet gebruikt, maar deze functie doet JOIN in chatroom. */
+    joinRoom: function(username, password, room){
+      var that = this;
+      this.room = room;
+      //console.log('--- User joins room "astadlabs"');
+      var room = this.room+"@conference.kingflurkel.dtdns.net";
+      var nick = username+"@kingflurkel.dtdns.net";
+      var password = password;
+      var history_attrs = null;
+      conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, password, history_attrs);
+    },
+
+    _addDataset: function(){
+        var config = {};
+        config["colors"] = ["blue", "red"];
+
+        var objectdata = {};
+        objectdata["username"] = "kingflurkel";
+
+        var object = {};
+        object["name"] = "SkeletonObject";
+        object["data"] = objectdata;
+        object["config"] = config;
+        object["peers"] = [];
+        object["component"] = "labs002-skeletonobject";
+
+        this.localapi.collection[object.name] = object;
+        this.$.localapielem.writeData();
+      }
+
+    });
+
+
+})();
+</script>

@@ -58,14 +58,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <body class="fullbleed" id="body">
   <span id="browser-sync-binding"></span>
   <template is="dom-bind" id="app">
+     <iron-localstorage name="labs002-user" value="{{labsuser}}"
+     on-iron-localstorage-load="_localuserFound">
+     </iron-localstorage>
 
-    <iron-localstorage 
-      name="locals-userprefs" 
-      value="{{userprefs}}"
-      on-iron-localstorage-load-empty="initUser"
-      on-iron-localstorage-load="loadUser">
+     <iron-localstorage 
+      name="labs002-openfire1" 
+      value="{{openfireuser}}"
+      on-iron-localstorage-load-empty="_ofuserEmpty"
+      on-iron-localstorage-load="_ofuserFound">
     </iron-localstorage>
-
   </template>
 
   <!-- build:js scripts/app.js -->

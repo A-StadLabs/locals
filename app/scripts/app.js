@@ -15,6 +15,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // Learn more about auto-binding templates at http://goo.gl/Dx1u2g
   var app = document.querySelector('#app');
 
+  var labsuser = false;
+
   function importPage(url){
     return new Promise(function(resolve, reject){
       Polymer.Base.importHref(url, function(e){
@@ -36,25 +38,49 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // See https://github.com/Polymer/polymer/issues/1381
   window.addEventListener('WebComponentsReady', function() {
     // imports are loaded and elements have been registered
+    var app = document.querySelector('#app');
   });
 
-  app.initUser = function(){
-    importPage("elements/lo-newuser/lo-newuser.html").then(function(){
-      var element = document.createElement("lo-newuser");
+  app._ofuserEmpty = function(){
+    console.log("Openfireuser not found.");
+    importPage("elements/labs002-newopenfireuser/labs002-newopenfireuser.html").then(function(){
+      var element = document.createElement("labs002-newopenfireuser");
       body.appendChild(element);
+      element._createOpenFireUser();
     }, function(err){
       console.log(err, "error");
     });
   };
 
-  app.loadUser = function(){
-    importPage("elements/lo-newuser/lo-stage.html").then(function(){
-      var element = document.createElement("lo-stage");
-      body.appendChild(element);
-    }, function(err){
-      console.log(err, "error");
-    });
+  app._ofuserFound = function(){
+    console.log("Openfireuser found.");
+
+    // Eerst checken of er ook al een locals user is aangemaakt.
+    // Anders gaan we een locals user aanmaken. 
+    if(labsuser){
+
+      // We hebben een locals user gevonden.
+      importPage("elements/labs002-stage/labs002-stage.html").then(function(){
+        var element = document.createElement("labs002-stage");
+        body.appendChild(element);
+      }, function(err){
+        console.log(err, "error");
+      });
+    } else {
+      importPage("elements/lo-newuser/lo-newuser.html").then(function(){
+        var element = document.createElement("lo-newuser");
+        body.appendChild(element);
+      }, function(err){
+        console.log(err, "error");
+      });
+    }
   };
+
+  app._localuserFound = function(){
+    console.log("Local user found.");
+    labsuser = true;
+  };
+  
 
 
 

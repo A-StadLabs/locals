@@ -40,12 +40,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
+    <iron-localstorage id="localstorage" name="labs002-user" value="{{encruserid}}">
+    </iron-localstorage>
+
     <neon-animated-pages id="pages" selected="{{selected}}" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
 
       <dp-pin on-pin-entered="naarPin2" pin="{{pin1}}" titel="Kies een pincode." error="{{error}}" extrabtn="Ik heb al een toestel geactiveerd" on-naar-activ="naarActivatie"></dp-pin>
 
       <dp-pin on-pin-entered="naarPinCheck" pin="{{pin2}}" titel="Herhaal de pincode." error="{{error}}">
         </dp-pin>
+
+      <neon-animatable>
+        <div class="canvas layout vertical center-center color">
+        <h2>Registratie voltooid.</h2>
+        <p>Je hebt een nieuwe gebruiker aangemaakt op dit toestel.</p>
+        <button on-tap="">Ga verder</button>
+      </div>
+      </neon-animatable>
 
     </neon-animated-pages>
   </template>
@@ -68,7 +79,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       naarPin2: function(){
         this.selected = 1;
-      }
+      },
+
+      naarPinCheck: function(){
+        if(this.pin1==this.pin2){
+          console.log('Pincodes komen overeen');
+          this.createUser();
+        } else {
+          console.log('Pincodes niet gelijk');
+          this.error = "Pins komen niet overeen.";
+          this.selected = 0;
+          this.pin1 = '';
+          this.pin2 = '';
+        };
+    },
+
+    createUser: function(){
+      var userid = uuid.v1();
+      var pincode = this.pin1;
+      console.log('--- Created UUID ---');
+      console.log('--- userid: ', userid, ' - pincode: ', pincode, ' ---');
+
+      var tmpuserid = CryptoJS.AES.encrypt(userid, pincode);
+      console.log('--- Encrypted UUID ---');
+      this.encruserid = tmpuserid.toString();
+      this.$.localstorage.value = this.encruserid;
+      console.log('--- Stored encrypted UUID in localstorage ---');
+      this.selected=2;
+    },
+
+
     });
   })();
   </script>
