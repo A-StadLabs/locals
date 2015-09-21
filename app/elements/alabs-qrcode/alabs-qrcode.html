@@ -34,10 +34,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     gotCode: function(){
+      var src = this.$.qrplaceholder;
+      src.innerHTML = '';
       var img = document.createElement("img");
       var sourceke = "https://chart.googleapis.com/chart?cht=qr&chs=400x400&chl="+this.code;
       img.src = sourceke.toString();
-      var src = this.$.qrplaceholder;
       src.appendChild(img);
     }
   });

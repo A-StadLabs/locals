@@ -4,12 +4,10 @@ See authors.md for a list of all members.
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <script src="../../scripts/crypto-aes.js"></script>
-<script src="../../bower_components/strophe.js/strophe.js"></script>
-<script src="../../bower_components/strophejs-plugins/muc/strophe.muc.js"></script>
-<script src="../../bower_components/strophe-openfire-websocket/strophe-openfire-websocket.js"></script>
-<script src="../../scripts/labs-locals.js"></script>
+
 <link rel="import" href="../dp-pin/dp-pin.html">
 
+<link rel="import" href="../lo-xmpp/lo-xmpp.html">
 
 <link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-from-right-animation.html">
@@ -71,7 +69,8 @@ See authors.md for a list of all members.
   <iron-localstorage 
     id="openfire2" 
     name="labs002-openfire2" 
-    value="{{openfire2}}">
+    value="{{openfire2}}"
+    on-iron-localstorage-load="loginOpenfire">
   </iron-localstorage>
 
   <labs002-localstorageapi 
@@ -81,6 +80,8 @@ See authors.md for a list of all members.
     data="{{localapi}}" 
     encdata="{{localenc}}">
   </labs002-localstorageapi>
+
+  <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived"></lo-xmpp>
 
   <neon-animated-pages id="pages" selected="{{selected}}" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
 
@@ -263,9 +264,11 @@ See authors.md for a list of all members.
         var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
         
         this.userid = decrtostring;
-        loginOpenfire(this.openfire1, this.openfire2, function(){
-          that.openfireconnect = true;        
-        });
+        // loginOpenfire(this.openfire1, this.openfire2, function(){
+        //   that.openfireconnect = true;        
+        // });
+
+        this.$.loxmpp.login();
 
         this.loggedin = true;
         
@@ -277,17 +280,17 @@ See authors.md for a list of all members.
       // Navigational stuff
       /** * This one shows the qr code associated with this device */
       _toQR:function(){
-        changeStage(4);
+        this.selected = 4;
       },
 
     _toWhere:function(){
       this.entryAnimation = 'slide-from-left-animation';
       this.exitAnimation = 'slide-right-animation';
-      changeStage(1);
+      this.selected = 1;
     },
 
     _toScanner: function(){
-      changeStage(3);
+      this.selected = 3;
     },
 
     _ConfirmGetuige: function(e) {
@@ -302,16 +305,16 @@ See authors.md for a list of all members.
     },
 
      /** * Wordt nog niet gebruikt, maar deze functie doet JOIN in chatroom. */
-    joinRoom: function(username, password, room){
-      var that = this;
-      this.room = room;
-      //console.log('--- User joins room "astadlabs"');
-      var room = this.room+"@conference.kingflurkel.dtdns.net";
-      var nick = username+"@kingflurkel.dtdns.net";
-      var password = password;
-      var history_attrs = null;
-      conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, password, history_attrs);
-    },
+    // joinRoom: function(username, password, room){
+    //   var that = this;
+    //   this.room = room;
+    //   //console.log('--- User joins room "astadlabs"');
+    //   var room = this.room+"@conference.kingflurkel.dtdns.net";
+    //   var nick = username+"@kingflurkel.dtdns.net";
+    //   var password = password;
+    //   var history_attrs = null;
+    //   conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, password, history_attrs);
+    // },
 
     _addDataset: function(){
         console.log("add dataset");
@@ -330,6 +333,10 @@ See authors.md for a list of all members.
 
         this.localapi.collection[object.name] = object;
         this.$.localapielem.writeData();
+      },
+
+      msgreceived: function(e){
+        console.log(JSON.stringify(e.detail));
       }
 
     });

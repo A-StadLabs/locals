@@ -55,6 +55,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   app._ofuserFound = function(){
     console.log("Openfireuser found.");
 
+    //app.$.loxmpp.login();
+
     // Eerst checken of er ook al een locals user is aangemaakt.
     // Anders gaan we een locals user aanmaken. 
     if(labsuser){
@@ -80,6 +82,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     console.log("Local user found.");
     labsuser = true;
   };
+
+  app.msgreceiver = function(e){
+    console.log(e.detail);
+  }
   
 
 

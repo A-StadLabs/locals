@@ -13,6 +13,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../dp-pin/dp-pin.html">
 
+<link rel="import" href="../lo-xmpp/lo-xmpp.html">
+
 <link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-from-right-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-left-animation.html">
@@ -21,11 +23,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <script src="../../bower_components/node-uuid/uuid.js"></script>
 <script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
-<script src="../../bower_components/strophe.js/strophe.js"></script>
-<script src="../../bower_components/strophejs-plugins/muc/strophe.muc.js"></script>
-<script src="../../bower_components/strophe-openfire-websocket/strophe-openfire-websocket.js"></script>
-<script src="../../scripts/labs-locals.js"></script>
-
+<!-- <script src="../../scripts/labs-locals.js"></script>
+ -->
 <dom-module id="lo-newuser">
   <template>
     <style>
@@ -43,6 +42,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <iron-localstorage id="localstorage" name="labs002-user" value="{{encruserid}}">
     </iron-localstorage>
 
+     <iron-localstorage 
+      name="labs002-openfire2" 
+      value="{{openfireuser2}}">
+    </iron-localstorage>
+
+     <iron-localstorage 
+      name="labs002-openfire1" 
+      value="{{openfireuser1}}"
+      on-iron-localstorage-load="loginOpenfire">
+    </iron-localstorage>
+
+    <lo-xmpp id="loxmpp" username="{{openfireuser1}}" password="{{openfireuser2}}" on-msg-received="msgreceived"></lo-xmpp>
+
     <neon-animated-pages id="pages" selected="{{selected}}" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
 
       <dp-pin on-pin-entered="naarPin2" pin="{{pin1}}" titel="Kies een pincode." error="{{error}}" extrabtn="Ik heb al een toestel geactiveerd" on-naar-activ="naarActivatie"></dp-pin>
@@ -58,11 +70,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
       </neon-animatable>
 
+      <neon-animatable>
+        <labs002-qrreader 
+          on-got-code="transferUser"></labs002-qrreader>
+      </neon-animatable>
+
     </neon-animated-pages>
   </template>
   <script>
   (function() {
     'use strict';
+
+    function importPage(url){
+    return new Promise(function(resolve, reject){
+      Polymer.Base.importHref(url, function(e){
+        resolve(e.target.import);
+      }, reject);
+    });
+  };
 
     Polymer({
       is: 'lo-newuser',
@@ -79,6 +104,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       naarPin2: function(){
         this.selected = 1;
+      },
+
+      msgreceived: function(e){
+        console.log(e);
       },
 
       naarPinCheck: function(){
@@ -107,6 +136,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       console.log('--- Stored encrypted UUID in localstorage ---');
       this.selected=2;
     },
+
+    naarActivatie: function(){
+      this.$.loxmpp.login();
+      var that = this;
+      importPage("elements/labs002-qrreader/labs002-qrreader.html").then(function(){
+        //var element = document.createElement("labs002-stage");
+        //body.appendChild(element);
+        that.selected = 3;
+      }, function(err){
+        console.log(err, "error");
+      });
+    },
+
+    transferUser: function(e){
+      console.log("Gonna sync with this user: ", e.detail.partner);
+      var partner = e.detail.partner+'@'+domein;
+      console.log(partner);
+      sendMessage(partner, "SYNC", null, null, null);
+    }
 
 
     });
