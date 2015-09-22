@@ -5,7 +5,8 @@
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
-<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
+<script src="../../scripts/crypto-aes.js"></script>
+<link rel="import" href="../lo-xmpp/lo-xmpp.html">
 
 
 <dom-module id="labs002-localstorageapi">
@@ -21,6 +22,8 @@
 
   <iron-localstorage id="localstorage" name="labs002-user" value="{{encruserid}}">
   </iron-localstorage>
+
+  <lo-xmpp id="loxmpp"></lo-xmpp>
 
   </template>
 </dom-module>
@@ -54,8 +57,14 @@
         type: String,
         notify: true,
         observer: "_encdataChanged"
+      },
+      deviceid: {
+        type: String,
+        notify: true
       }
     },
+
+
 
     _pincode: function(){
       console.log('got pin: ', this.pincode);
@@ -84,8 +93,10 @@
         this.encdata = encrypted.toString();
         var peers = this.data.peers;
         for (var i = peers.length - 1; i >= 0; i--) {
-          console.log('Save ook bij: ',peers[i]);
-          //stage.sendMessage(peers[i], "userupdate",this.encdata, this.encruserid);
+          if(peers[i]!=this.deviceid+"@opantwerpen.be"){
+            console.log('Save ook bij: ',peers[i]);
+            this.$.loxmpp.sendMessage(peers[i], "USERUPDATE", null, null, this.encdata);
+          };
         };
         this.readData();
     },
@@ -99,7 +110,10 @@
         var decrypted = CryptoJS.AES.decrypt(this.encdata, pin);
         var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
         console.log('Localstorage API decrypt: ',decrtostring);
-        var data = JSON.parse(decrtostring);
+        var data = JSON.parse(decrtostring, function(k, v) {
+          //console.log("IETS",k); // log the current property name, the last is "".
+          return v;       // return the unchanged property value.
+        });
         //console.log(data);
         this.data = data;
       };

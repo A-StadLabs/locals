@@ -73,7 +73,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               // Als em goed is ingelogd doe dit
               
               conn.send($pres().tree());
-              
+                      console.log("////// ME: ", this.username, " /////////");
+
               conn.addHandler(that.receiveMessage);
               that.connected = true;
               that.loggedin = true;
@@ -86,7 +87,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       receiveMessage: function(msg){
-        //console.log(msg);
+        console.log(msg);
         var that = this;
         var to = msg.getAttribute('to');
         var from = msg.getAttribute('from');
@@ -102,7 +103,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           var commandarray = bodymsg.split("//");
 
-          var partner = from;
+          var partner = from.split("/");
+          var partner = partner[0];
           var command = commandarray[0];
           var objectname = commandarray[1];
           var objectconfig = commandarray[2];
@@ -119,7 +121,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     { "objectdata": objectdata }]
         });
         return true;
+      },
+
+      sendMessage: function(partner, command, objectname, objectconfig, objectdata){
+        console.log("Preparing to send message: ",partner+'//'+command+'//'+objectname+'//'+objectconfig+'//'+objectdata);
+        var message = command+'//'+objectname+'//'+objectconfig+'//'+objectdata;
+        var msg = $msg({
+          to: partner
+        }).cnode(Strophe.xmlElement('body', message)).up()
+        .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+        conn.send(msg);
       }
+
     });
   })();
   </script>

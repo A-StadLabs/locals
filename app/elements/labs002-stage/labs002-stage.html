@@ -15,10 +15,10 @@ See authors.md for a list of all members.
 
 <link rel="import" href="../../bower_components/neon-animation/neon-animatable.html">
 
-
 <link rel="import" href="../labs002-localstorageapi/labs002-localstorageapi.html">
 <link rel="import" href="../labs002-objectscollection/labs002-objectscollection.html">
 <link rel="import" href="../alabs-qrcode/alabs-qrcode.html">
+<link rel="import" href="../lo-dialog/lo-dialog.html">
 
 
 <dom-module id="labs002-stage">
@@ -78,7 +78,8 @@ See authors.md for a list of all members.
     userid="{{userid}}" 
     pincode="{{pin1}}" 
     data="{{localapi}}" 
-    encdata="{{localenc}}">
+    encdata="{{localenc}}"
+    deviceid="{{openfire1}}">
   </labs002-localstorageapi>
 
   <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived"></lo-xmpp>
@@ -118,12 +119,15 @@ See authors.md for a list of all members.
   </neon-animatable>
 
   <!-- Stage 5: Dialog: actie goedkeuren of weigeren. -->
-  <neon-animatable>
-    <div class="canvas">
-      Hier komt de dialog.
-    </div>
-  </neon-animatable>
-
+  <lo-dialog 
+    id="lodialog" 
+    title="Bevestigen?" 
+    body="Iemand wil iets." 
+    command="SYNC"
+    on-dialog-confirm="processCommand" 
+    on-dialog-cancel="cancel">
+  </lo-dialog>
+  
   <!-- Stage 6: Plusmenu om objecten toe te voegen. -->
   <neon-animatable>
     <div class="canvas">
@@ -150,6 +154,10 @@ See authors.md for a list of all members.
 
     var partner;
 
+    var app = document.getElementById("app");
+
+    console.log(app);
+
 
     var saveEncuserobject = function(e){
       console.log(e);
@@ -167,6 +175,10 @@ See authors.md for a list of all members.
 
         selected: {
           type: Number
+        },
+        domein: {
+          type: String,
+          value: "opantwerpen.be"
         }
 
       },
@@ -176,6 +188,7 @@ See authors.md for a list of all members.
      */
 
       ready: function(){
+
         //Dit staat hier voor de gemakkelijkheid
         this.pin1 = '1234';
 
@@ -275,6 +288,8 @@ See authors.md for a list of all members.
         this.$.localapielem.readData();
 
         this.selected = 1;
+
+
       },   
  
       // Navigational stuff
@@ -337,10 +352,102 @@ See authors.md for a list of all members.
 
       msgreceived: function(e){
         console.log(JSON.stringify(e.detail));
+        // {"detail":[{"partner":"8dfb9a50-6107-11e5-aa8c-8da569b7f6e2@opantwerpen.be/7782ea43-1baa-9f7f-4a2e-9fa5cb4edb6f"},{"command":"SYNC"},{"objectname":"null"},{"objectconfig":"null"},{"objectdata":"null"}]}
+        var command = e.detail.detail[1].command;
+        var dialog = this.$.lodialog;
+
+        if(command){
+          switch(command){
+            case "SYNC":
+              // Een ander toestel wil met dit toestel syncen.
+              console.log("sync request");
+              dialog.title = "SYNC?";
+              dialog.body = "Een toestel wil synchroniseren met dit toestel.";
+              dialog.command = command;
+              dialog.partner = e.detail.detail[0].partner;
+              this.selected = 5;
+            break;
+
+            case "SYNCOK":
+              console.log("Sync OK!");
+              this.selected = 1;
+            break;
+
+            case "USERUPDATE":
+              // I am a sync/peer for this user so I keep myself up to date.
+              // Overwrite the local userobject with the one received.
+              //if(e.detail.detail.partner!=this.openfire1+"@"+this.domein){
+              console.log("Ik  krijg iets van ", e.detail.detail[0].partner);
+              console.log("normaal ga ik dus nu deze shit overschijven: ", e.detail.detail[4].objectdata);
+               this.$.localapielem.encdata = e.detail.detail[4].objectdata;
+                this.localapi.lastupdate = Date.now();
+               // window.location = "/";
+              //};
+            break;
+
+            case "VALIDATE":
+              // Validate the dataset on this device by adding the sender as a peer
+              console.log("sync request");
+              dialog.title = "SYNC?";
+              dialog.body = "Een toestel wil synchroniseren met dit toestel.";
+              //app.localapi.collection[objectname].peers.push(partner);
+              //app.localapi.lastupdate = Date.now();
+            break;
+
+            case "VERIFY":
+              // Another user wants a dataset verified by this user
+              console.log("sync request");
+              dialog.title = "SYNC?";
+              dialog.body = "Een toestel wil synchroniseren met dit toestel.";
+              //app.openDialog("Wil je deze dataset van Kristien valideren?");
+            break;
+
+            case "DATAUPDATE":
+              // The incoming dataset has been updated. This device should update the objectconfig and check whether the objectdata has been changed. When changed, the the verification should be cancelled.
+              console.log("sync request");
+              dialog.title = "SYNC?";
+              dialog.body = "Een toestel wil synchroniseren met dit toestel.";
+              //app.localapi.collection[objectname].peers[partner] = objectconfig;
+              console.log("Een van jouw mignons heeft een dataset veranderd.");
+              //if(app.localapi.collection[objectname].data === objectdata);
+              //app.localapi.lastupdate = Date.now();
+            break;
+
+          };
+
+        };
+      },
+
+      cancel: function(){
+        this.selected = 4;
+      },
+
+      processCommand: function(e){
+
+        // Dit verwerkt het commando dat door de dialog wordt gestuurd.
+        var command = e.detail.command;
+        var partner = e.detail.partner;
+        var loxmpp = this.$.loxmpp;
+
+        console.log("Process command: ",command);
+
+        switch(command){
+          case "SYNC":
+            console.log("confirmation to ", command, " for ", partner);
+
+            this.localapi.peers.push(this.openfire1+'@'+this.domein);
+            this.localapi.peers.push(partner);
+            this.$.localapielem.writeData();
+            var data = this.$.localapielem.encdata;
+            var encruserid = this.encruserid;
+            loxmpp.sendMessage(partner, "USERUPDATE", "ALL", encruserid, data);
+            this.$.localapielem.readData();
+          break;
+          
+        };
+        
       }
 
     });
-
-
 })();
 </script>
