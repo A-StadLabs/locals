@@ -155,6 +155,8 @@ See authors.md for a list of all members.
         //that._objectChanged();
         mofo.objectdata = e.detail.dataset;
       });
+
+
     },
 
     _log: function(){
@@ -162,7 +164,7 @@ See authors.md for a list of all members.
     },
 
     _objectChanged: function(){
-      //console.log('updated: ',this.objectsdata.collection);
+      console.log('updated: ',this.objectsdata.collection);
       this.objectsdata_new = [];
       var objectsdata_new = this.objectsdata_new;
       var p = this.objectsdata.collection;

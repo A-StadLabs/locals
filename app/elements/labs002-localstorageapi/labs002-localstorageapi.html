@@ -31,6 +31,7 @@
 (function() {
 
   var stage;
+  var app;
 
   window.addEventListener('WebComponentsReady', function() {
       // imports are loaded and elements have been registered
@@ -43,7 +44,8 @@
     properties: {
       data: {
         type: Object,
-        notify: true
+        notify: true,
+        observer: "_dataChanged"
       },
       userid: {
         type: String,
@@ -67,11 +69,11 @@
 
 
     _pincode: function(){
-      console.log('got pin: ', this.pincode);
+      //console.log('got pin: ', this.pincode);
     },
 
     _userid: function(){
-      console.log('got userid: ', this.userid);
+      //console.log('got userid: ', this.userid);
     },
 
     initEmpty: function(){
@@ -116,12 +118,24 @@
         });
         //console.log(data);
         this.data = data;
+        app.render();
       };
     },
 
     _encdataChanged: function(){
       console.log('encdata changed');
       this.readData();
+    },
+
+    _dataChanged: function(){
+      console.log('data changed');
+      //this.writeData();
+      this.fire("data-changed");
+    },
+
+    attached: function(){
+      app = document.querySelector('#app');
+      console.log("Ken ik app? ",app);
     }
   });
 })();

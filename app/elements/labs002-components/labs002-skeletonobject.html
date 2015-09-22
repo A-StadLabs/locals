@@ -18,7 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </style>
 <template>
 <div>Hello from <span>{{objectname}}</span></div>
-<h1>{{objectdata.username}}</h1>
+<h1>{{username}}</h1>
 	<input type="text" id="userinput" value="{{objectdata.username}}"/>
 	<button on-tap="save">Save</button>
 
@@ -60,7 +60,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
  
       _data: function(){
       	console.log("Observer?", this.objectdata);
-      	//this.username = this.objectdata.username;
+      	this.username = this.objectdata.username;
+      },
+
+      refresh: function(){
+        console.log("REFRESHHHHHMENTS!!");
+        this.username = this.objectdata.username;
       },
 
       save: function(){

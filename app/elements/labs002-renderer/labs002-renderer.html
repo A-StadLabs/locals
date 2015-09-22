@@ -92,6 +92,7 @@ See authors.md for a list of all members.
 (function() {
 
   var elem; 
+var app;
 
   Polymer({
     is: 'labs002-renderer',
@@ -188,13 +189,12 @@ See authors.md for a list of all members.
 
     _dataset: function(){
       console.log("changed? ",this.objectname);
-      var even = document.getElementById(this.objectname);
-      console.log("element: :",even);
     },
 
     _data: function(){
       // Maak eerst het render plaatske leeg
       //console.log('data changed', this.objectdata);
+      app.refresh();
     },
 
     _config: function(){
@@ -206,6 +206,8 @@ See authors.md for a list of all members.
     attached: function(){
       // Maak eerst het render plaatske leeg
       //console.log('data changed', this.objectdata);
+      app = document.querySelector('#app');
+      
       
       // De gepaste webcomponent inladen
 

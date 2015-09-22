@@ -65,6 +65,12 @@ See authors.md for a list of all members.
     name="labs002-openfire1" 
     value="{{openfire1}}">
   </iron-localstorage>
+
+  <iron-localstorage 
+    id="localtest" 
+    name="localtest" 
+    value="{{localtest}}">
+  </iron-localstorage>
   
   <iron-localstorage 
     id="openfire2" 
@@ -85,6 +91,7 @@ See authors.md for a list of all members.
   <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived"></lo-xmpp>
 
   <neon-animated-pages id="pages" selected="{{selected}}" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
+
 
   <!-- Stage 0: Pincode ingeven (bestaande gebruiker) -->
   <dp-pin on-yes="toggleDrawer" on-pin-entered="decryptUser" pin="{{pin1}}" titel="Geef je pincode in." error="{{error}}">
@@ -154,9 +161,7 @@ See authors.md for a list of all members.
 
     var partner;
 
-    var app = document.getElementById("app");
 
-    console.log(app);
 
 
     var saveEncuserobject = function(e){
@@ -188,6 +193,7 @@ See authors.md for a list of all members.
      */
 
       ready: function(){
+
 
         //Dit staat hier voor de gemakkelijkheid
         this.pin1 = '1234';
@@ -446,6 +452,11 @@ See authors.md for a list of all members.
           
         };
         
+      },
+
+      attached: function(){
+                this.localtest = "bla";
+
       }
 
     });
