@@ -2,17 +2,17 @@
   "name": "polymer-starter-kit",
   "private": true,
   "dependencies": {
+    "firebase-element": "GoogleWebcomponents/firebase-element#~1.0.6",
     "iron-elements": "PolymerElements/iron-elements#1.0.0",
+    "neon-elements": "PolymerElements/neon-elements#1.0.0",
+    "node-uuid": "~1.4.3",
+    "object-hash": "puleos/object-hash#~0.9.1",
+    "page": "visionmedia/page.js#~1.6.3",
     "paper-elements": "PolymerElements/paper-elements#1.0.1",
     "platinum-elements": "PolymerElements/platinum-elements#1.0.1",
-    "neon-elements": "PolymerElements/neon-elements#1.0.0",
-    "page": "visionmedia/page.js#~1.6.3",
     "strophe-openfire-websocket": "gunblues/strophe-openfire-websocket",
     "strophe.js": "strophe/strophejs#~1.2.2",
-    "strophejs-plugins": "strophe/strophejs-plugins#~0.0.5",
-    "node-uuid": "~1.4.3",
-    "firebase-element": "GoogleWebcomponents/firebase-element#~1.0.6"
-
+    "strophejs-plugins": "strophe/strophejs-plugins#~0.0.5"
   },
   "devDependencies": {
     "web-component-tester": "*",

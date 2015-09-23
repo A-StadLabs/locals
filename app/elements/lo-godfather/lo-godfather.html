@@ -10,40 +10,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<dom-module id="labs002-peers">
-  <style>
-    :host {
-      display: block;
-    }
-
-    button {
-      width: 100px;
-      height: 50px;
-    }
-  </style>
+<dom-module id="lo-godfather">
   <template>
-    <button on-tap="newpeer">+</button>
-    <p>{{peers.length}}</p>
-    <tempate is="dom-repeat" items="{{peers}}">
-      <h3>Peer<span>{{item.peer}}</span></h3>
-    </tempate>
-  </template>
-</dom-module>
-<script>
-(function() {
-  Polymer({
-    is: 'labs002-peers',
-
-    properties: {
-      peers: {
-        type: Array,
-        notify: true
+    <style>
+      :host {
+        display: block;
       }
-    },
+    </style>
+    <h1>Godfather of: </h1>
+    <template is="dom-repeat" items="children">
+      <div>HAHAHAHA!<span>{{item}}</span></div>
+    </template>
+  </template>
+  <script>
+  (function() {
+    'use strict';
 
-    newpeer: function(){
-      this.fire("new-peer");
-    }
-  });
-})();
-</script>
+    Polymer({
+      is: 'lo-godfather',
+
+      properties: {
+        children: {
+          type: Array,
+          notify: true
+        }
+      }
+    });
+  })();
+  </script>
+</dom-module>

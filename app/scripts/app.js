@@ -64,6 +64,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // We hebben een locals user gevonden.
       importPage("elements/labs002-stage/labs002-stage.html").then(function(){
         var element = document.createElement("labs002-stage");
+        element.id = "stage";
         body.appendChild(element);
       }, function(err){
         console.log(err, "error");

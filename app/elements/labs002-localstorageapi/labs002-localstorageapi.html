@@ -77,7 +77,7 @@
     },
 
     initEmpty: function(){
-      var data = { collection: {}, peers: [], lastupdate: Date.now() };
+      var data = { collection: {}, peers: [], godfather: [], lastupdate: Date.now() };
       this.data = data;
       //this.fire('init-data');
       this.writeData();
@@ -97,7 +97,7 @@
         for (var i = peers.length - 1; i >= 0; i--) {
           if(peers[i]!=this.deviceid+"@opantwerpen.be"){
             console.log('Save ook bij: ',peers[i]);
-            this.$.loxmpp.sendMessage(peers[i], "USERUPDATE", null, null, this.encdata);
+            this.$.loxmpp.sendMessage(peers[i], "SYNCUPDATE", null, null, this.encdata);
           };
         };
         this.readData();

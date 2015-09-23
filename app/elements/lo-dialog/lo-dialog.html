@@ -46,6 +46,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: String,
           value: 'lo-dialog',
           notify: true
+        },
+        objectname: {
+          type: String
         }  
       },
 
@@ -54,7 +57,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       confirm: function(){
-        this.fire('dialog-confirm', { command: this.command, partner: this.partner });
+        this.fire('dialog-confirm', { command: this.command, partner: this.partner, objectname: this.objectname });
       }
     });
   })();

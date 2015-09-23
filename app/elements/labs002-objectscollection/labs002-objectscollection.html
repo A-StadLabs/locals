@@ -9,6 +9,8 @@ See authors.md for a list of all members.
 <link rel="import" href="../../bower_components/neon-animation/neon-animations.html">
 
 <link rel="import" href="../../bower_components/neon-animation/neon-animatable.html">
+<script src="../../bower_components/object-hash/dist/object_hash.js"></script>
+
 <link rel="import" href="../labs002-renderer/labs002-renderer.html">
 
 <dom-module id="labs002-objectscollection">
@@ -75,13 +77,14 @@ See authors.md for a list of all members.
         <div class="toolbarbtns color layout horizontal">
           <span class="flex"></span>
           <div class="mainbtns">
+            <button class="mainbtn QR" on-tap="toGod">---</button>
             <button class="mainbtn" on-tap="FireAddData">+</button>
             <button class="mainbtn QR" on-tap="_toQR"><img src="../images/QR.svg"></button>
           </div>
         </div>
     </div>
 
-    <template is="dom-repeat" items="{{objectsdata_new}}">
+    <template is="dom-repeat" items="{{objectsdata_new}}" id="collrepeat">
 
         <labs002-renderer 
           objectname="{{item.array.objectname}}" 
@@ -137,6 +140,8 @@ See authors.md for a list of all members.
 
       var that = this;
 
+      var hash = require('object-hash');
+      
       this.addEventListener('add-getuige', function(e){
         //console.log(e.detail.dataset);
         //this.sendMessage(partner, "heresuserobject",this.localenc, this.encruserid);
@@ -146,17 +151,21 @@ See authors.md for a list of all members.
 
       this.addEventListener('save-it', function(e){
         console.log("Save it from objectscollection: ",e.detail.datasetkey);
+        console.log("Hash!",hash('michael'));
+        //this.objectsdata.collection[e.detail.datasetkey].hash = hash.MD5(e.detail.dataset);
         this.objectsdata.collection[e.detail.datasetkey].data = e.detail.dataset;
         //this.objectsdata[e.detail.datasetname].data
         console.log("Is it added? ", this.objectsdata);
         this.fire('save');
-        var mofo = document.getElementById(e.detail.datasetkey);
-        console.log("mofo: ", mofo, " + ", e.detail.dataset);
         //that._objectChanged();
-        mofo.objectdata = e.detail.dataset;
       });
 
 
+    },
+
+    toGod: function(){
+      var stage = document.querySelector("#stage");
+      stage.selected = 7;
     },
 
     _log: function(){

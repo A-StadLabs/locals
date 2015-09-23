@@ -84,7 +84,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     // { name: "SkeletonObject",
                     //   data: { "username": "kingflurkel" },
                     //   config: { "colors": ["blue", "red"]},
-                    //   peers: [],
+                    //   peers: [null],
                     //   component: "labs002-skeletonobject",
                     //   conditions: [ {objectname: ""} ],
                     //   enabled: false,
@@ -94,7 +94,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     // { name: "Basisprofiel",
                     //   data: {},
                     //   config: {},
-                    //   peers: [],
+                    //   peers: [{}],
                     //   component: "labs002-basisprofiel",
                     //   conditions: [ {objectname: "SkeletonObject"} ],
                     //   enabled: false,
@@ -104,7 +104,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     // { name: "Huwelijk",
                     //   data: {},
                     //   config: {},
-                    //   peers: [],
+                    //   peers: [{}],
                     //   component: "labs002-huwelijk",
                     //   conditions: [ {objectname: "Basisprofiel"} ],
                     //   enabled: false,
@@ -209,6 +209,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     addtocollection: function(e){
       console.log("Add to collection ", this.previewname);
       this.userobjects.collection[this.previewname] = this.objects.collection[this.previewindex];
+      this.userobjects.collection[this.previewname].peers = [];
       console.log(this.userobjects.collection[this.previewname]);
       this.fire("save");
     },

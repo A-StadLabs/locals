@@ -19,6 +19,7 @@ See authors.md for a list of all members.
 <link rel="import" href="../labs002-objectscollection/labs002-objectscollection.html">
 <link rel="import" href="../alabs-qrcode/alabs-qrcode.html">
 <link rel="import" href="../lo-dialog/lo-dialog.html">
+<link rel="import" href="../lo-godfather/lo-godfather.html">
 
 
 <dom-module id="labs002-stage">
@@ -65,12 +66,6 @@ See authors.md for a list of all members.
     name="labs002-openfire1" 
     value="{{openfire1}}">
   </iron-localstorage>
-
-  <iron-localstorage 
-    id="localtest" 
-    name="localtest" 
-    value="{{localtest}}">
-  </iron-localstorage>
   
   <iron-localstorage 
     id="openfire2" 
@@ -90,7 +85,10 @@ See authors.md for a list of all members.
 
   <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived"></lo-xmpp>
 
+  
+
   <neon-animated-pages id="pages" selected="{{selected}}" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
+
 
 
   <!-- Stage 0: Pincode ingeven (bestaande gebruiker) -->
@@ -142,6 +140,13 @@ See authors.md for a list of all members.
     </div>
   </neon-animatable>
 
+    <!-- Stage 7: Godfather: ik ben godfather van volgende datasets/users: -->
+  <neon-animatable>
+    <div class="canvas">
+      <lo-godfather children="{{localapi.godfather}}"></lo-godfather>
+    </div>
+  </neon-animatable>
+
 </neon-animated-pages>
 
 </template>
@@ -161,8 +166,12 @@ See authors.md for a list of all members.
 
     var partner;
 
+    var stage;
 
 
+    var app = document.getElementById("app");
+
+    console.log(app);
 
     var saveEncuserobject = function(e){
       console.log(e);
@@ -193,7 +202,6 @@ See authors.md for a list of all members.
      */
 
       ready: function(){
-
 
         //Dit staat hier voor de gemakkelijkheid
         this.pin1 = '1234';
@@ -239,6 +247,10 @@ See authors.md for a list of all members.
 
       },
 
+      attached: function(){
+        stage = document.querySelector("labs002-stage");
+      },
+
       senduserobject: function(){
         console.log('send user object to: ', partner, ' This value: ', this.localenc);
         this.localapi.peers.push(this.openfire1+'@'+domein);
@@ -251,6 +263,9 @@ See authors.md for a list of all members.
       /** * Dees functie opent de qr reader en wacht tot em iets terug krijgt. */
 
       _qrreader: function(e){
+
+         var loxmpp = this.$.loxmpp;
+
         this.importHref("../elements/labs002-qrreader/labs002-qrreader.html", function(g) {
           this.addEventListener("got-code", function(f){
             //Hier doet em shit als em een code terug krijgt. 
@@ -261,12 +276,12 @@ See authors.md for a list of all members.
             console.log('Dataset: ', e.detail.objectname);
             console.log('Config: ', e.detail.objectconfig);
             console.log('Data: ', e.detail.objectdata);
-            var partner = f.detail.partner+"@"+domein;
+            var partner = f.detail.partner+"@"+this.domein;
             var command = e.detail.command;
             var objectname = e.detail.objectname;
             var objectdata = e.detail.objectdata;
             var objectconfig = e.detail.objectconfig;
-            sendMessage(partner, command, objectname, objectconfig, objectdata);
+            loxmpp.sendMessage(partner, command, objectname, objectconfig, objectdata);
           });
         // e.target.import is the import document.
         //console.log('import',e);
@@ -360,6 +375,7 @@ See authors.md for a list of all members.
         console.log(JSON.stringify(e.detail));
         // {"detail":[{"partner":"8dfb9a50-6107-11e5-aa8c-8da569b7f6e2@opantwerpen.be/7782ea43-1baa-9f7f-4a2e-9fa5cb4edb6f"},{"command":"SYNC"},{"objectname":"null"},{"objectconfig":"null"},{"objectdata":"null"}]}
         var command = e.detail.detail[1].command;
+        var objectname = e.detail.detail[2].objectname;
         var dialog = this.$.lodialog;
 
         if(command){
@@ -391,20 +407,33 @@ See authors.md for a list of all members.
               //};
             break;
 
+            case "SYNCUPDATE":
+              console.log("Something changed on another device");
+              console.log("Ken ik stage? ", stage);
+              //this.selected = 1;
+              this.$.localapielem.encdata = e.detail.detail[4].objectdata;
+
+            break;
+
             case "VALIDATE":
               // Validate the dataset on this device by adding the sender as a peer
-              console.log("sync request");
-              dialog.title = "SYNC?";
-              dialog.body = "Een toestel wil synchroniseren met dit toestel.";
-              //app.localapi.collection[objectname].peers.push(partner);
-              //app.localapi.lastupdate = Date.now();
+              console.log("validate request from ", partner);
+              console.log('localapi: ', this.localapi.collection);
+              console.log('objectname: ', objectname);
+              console.log('localapi item: ', this.localapi.collection[objectname]);
+              this.localapi.collection[objectname].peers.push(partner);
+              this.localapi.lastupdate = Date.now();
             break;
 
             case "VERIFY":
               // Another user wants a dataset verified by this user
               console.log("sync request");
-              dialog.title = "SYNC?";
-              dialog.body = "Een toestel wil synchroniseren met dit toestel.";
+              dialog.title = "VERIFY";
+              dialog.body = "Wil je getuige zijn van deze dataset?";
+              dialog.command = command;
+              dialog.partner = e.detail.detail[0].partner;
+              dialog.objectname = e.detail.detail[2].objectname;
+              this.selected = 5;
               //app.openDialog("Wil je deze dataset van Kristien valideren?");
             break;
 
@@ -433,6 +462,7 @@ See authors.md for a list of all members.
         // Dit verwerkt het commando dat door de dialog wordt gestuurd.
         var command = e.detail.command;
         var partner = e.detail.partner;
+        var objectname = e.detail.objectname;
         var loxmpp = this.$.loxmpp;
 
         console.log("Process command: ",command);
@@ -449,14 +479,15 @@ See authors.md for a list of all members.
             loxmpp.sendMessage(partner, "USERUPDATE", "ALL", encruserid, data);
             this.$.localapielem.readData();
           break;
+
+          case "VERIFY":
+            console.log("Ik word getuige van ", partner);
+            loxmpp.sendMessage("profiel@conference.opantwerpen.be", "VALIDATE", objectname, encruserid, data, 'groupchat');
+            //this.$.localapielem.readData();
+          break;
           
         };
         
-      },
-
-      attached: function(){
-                this.localtest = "bla";
-
       }
 
     });

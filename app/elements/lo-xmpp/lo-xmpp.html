@@ -77,6 +77,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
               conn.addHandler(that.receiveMessage);
               that.connected = true;
+              that.joinRoom(this.username, this.password, "astadlabs");
+
               that.loggedin = true;
               fn();
           } else if (status === Strophe.Status.DISCONNECTED) {
@@ -84,6 +86,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               console.log('--- Diconnected from OpenFire');
           };
         });
+
+      },
+
+      joinRoom: function(username, password, room){
+      var that = this;
+      this.room = room;
+      //console.log('--- User joins room "astadlabs"');
+      var room = this.room+"@conference.opantwerpen.be";
+      var nick = username+"@opantwerpen.be";
+      var passwort = password;
+      var history_attrs = null;
+      conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, passwort, history_attrs);
       },
 
       receiveMessage: function(msg){
@@ -128,6 +142,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var message = command+'//'+objectname+'//'+objectconfig+'//'+objectdata;
         var msg = $msg({
           to: partner
+        }).cnode(Strophe.xmlElement('body', message)).up()
+        .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+        conn.send(msg);
+      },
+
+      sendgroupMessage: function(partner, command, objectname, objectconfig, objectdata){
+        console.log("Preparing to send message: ",partner+'//'+command+'//'+objectname+'//'+objectconfig+'//'+objectdata);
+        var message = command+'//'+objectname+'//'+objectconfig+'//'+objectdata;
+        var msg = $msg({
+          to: partner,
+          type: 'groupchat'
         }).cnode(Strophe.xmlElement('body', message)).up()
         .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
         conn.send(msg);
