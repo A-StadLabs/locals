@@ -18,13 +18,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <h1>Godfather of: </h1>
-    <template is="dom-repeat" items="children">
-      <div>HAHAHAHA!<span>{{item}}</span></div>
+    <template is="dom-repeat" items="{{children}}">
+      <div>USERID Child: <span>{{item.child}}</span>
+      Object: <span>{{item.object}}</span>
+      Hash: <span>{{item.hash}}</span></div>
+      <div>{{item.valid}}</div>
     </template>
   </template>
   <script>
   (function() {
     'use strict';
+
+
+    var loxmpp;
 
     Polymer({
       is: 'lo-godfather',
@@ -32,9 +38,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       properties: {
         children: {
           type: Array,
-          notify: true
+          notify: true,
+          observer: "_children"
         }
+      },
+
+      attached: function(){
+        loxmpp = document.querySelector("lo-xmpp");
+        //console.log("Godfather kent loxmpp: ", loxmpp);
+      },
+
+      _children: function(){
+        for (var i = this.children.length - 1; i >= 0; i--) {
+          //let's check in on my chilren.
+          //console.log("Joining room: ",this.children[i].child, " i am ", loxmpp.username);
+          loxmpp.joinRoom("godfather", loxmpp.password, this.children[i].child);
+        };
+      },
+
+      checkSum: function(user, object, hash, fn){
+        //console.log("My child ",user," has edited info for: ", object, " new hash: ", hash);
+        for (var i = this.children.length - 1; i >= 0; i--) {
+          if(this.children[i].child==user&&this.children[i].object==object){
+            //console.log("found one of my children");
+            if(this.children[i].hash != hash){
+              //console.log("hash changed: child's hash: ", hash, " my hash: ", this.children[i].hash);
+              this.children[i].valid = false;
+              this.fire('save');
+            } else {
+              //console.log("hashcheck OKAY! child's hash: ", hash, " my hash: ", this.children[i].hash);
+              this.children[i].valid = true;
+              this.fire('save');
+            }
+          };
+        };
+        fn();
       }
+
     });
   })();
   </script>

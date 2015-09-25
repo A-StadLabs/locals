@@ -32,7 +32,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // Listen for template bound event to know when bindings
   // have resolved and content has been stamped to the page
   app.addEventListener('dom-change', function() {
-    console.log('Our app is ready to rock!');
+    //console.log('Our app is ready to rock!');
   });
 
   // See https://github.com/Polymer/polymer/issues/1381
@@ -42,18 +42,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   });
 
   app._ofuserEmpty = function(){
-    console.log("Openfireuser not found.");
+    //console.log("Openfireuser not found.");
     importPage("elements/labs002-newopenfireuser/labs002-newopenfireuser.html").then(function(){
       var element = document.createElement("labs002-newopenfireuser");
       body.appendChild(element);
       element._createOpenFireUser();
     }, function(err){
-      console.log(err, "error");
+      //console.log(err, "error");
     });
   };
 
   app._ofuserFound = function(){
-    console.log("Openfireuser found.");
+    //console.log("Openfireuser found.");
 
     //app.$.loxmpp.login();
 
@@ -67,25 +67,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         element.id = "stage";
         body.appendChild(element);
       }, function(err){
-        console.log(err, "error");
+        //console.log(err, "error");
       });
     } else {
       importPage("elements/lo-newuser/lo-newuser.html").then(function(){
         var element = document.createElement("lo-newuser");
         body.appendChild(element);
       }, function(err){
-        console.log(err, "error");
+        //console.log(err, "error");
       });
     }
   };
 
   app._localuserFound = function(){
-    console.log("Local user found.");
+    //console.log("Local user found.");
     labsuser = true;
   };
 
   app.msgreceiver = function(e){
-    console.log(e.detail);
+    //console.log(e.detail);
   }
   
 

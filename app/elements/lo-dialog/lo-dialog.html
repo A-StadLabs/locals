@@ -9,6 +9,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
 
 
 <dom-module id="lo-dialog">
@@ -20,7 +22,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
     <div>
       <h1>{{title}}</h1>
+      <p>{{objectname}}</p>
+      <p>{{objectdata}}</p>
+      <p>{{objectconfig}}</p>
       <p>{{body}}</p>
+      <p>1 <span>{{hash}}</span></p>
+      <p>2 <span>{{hash2}}</span></p>
       <button on-tap="cancel">cancel</button>
       <button on-tap="confirm">ok</button>
     </div>
@@ -28,6 +35,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script>
   (function() {
     'use strict';
+
+    function hasher(hashobject){
+    var hash = hashobject;
+    var hash = CryptoJS.SHA256(hash);
+    console.log("te hashen: ", hashobject);
+    console.log("gehashed: ", hash.toString(CryptoJS.enc.Hex));
+    return hash.toString(CryptoJS.enc.Hex); 
+  };
 
     Polymer({
       is: 'lo-dialog',
@@ -49,7 +64,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
         objectname: {
           type: String
-        }  
+        },
+        userid: {
+          type: String
+        },
+        hash: {
+          type: String
+        },
+        objectdata: {
+          type: String,
+          observer: "_hash"
+        },
+        objectconfig: {
+          type: String
+        },
+        hash2: {
+          type: String
+        }
       },
 
       cancel: function(){
@@ -57,7 +88,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       confirm: function(){
-        this.fire('dialog-confirm', { command: this.command, partner: this.partner, objectname: this.objectname });
+        this.fire('dialog-confirm', { command: this.command, partner: this.partner, objectname: this.objectname, userid: this.userid, hash: this.hash, objectdata: this.objectdata, objectconfig: this.objectconfig });
+      },
+
+      _hash: function(){
+          this.hash2 = hasher(this.objectdata);
       }
     });
   })();

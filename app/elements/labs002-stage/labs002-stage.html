@@ -83,9 +83,9 @@ See authors.md for a list of all members.
     deviceid="{{openfire1}}">
   </labs002-localstorageapi>
 
-  <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived"></lo-xmpp>
+  <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived" on-groupmsg-received="groupmsgreceived"></lo-xmpp>
 
-  
+  <small>{{userid}}</small>
 
   <neon-animated-pages id="pages" selected="{{selected}}" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
 
@@ -143,7 +143,7 @@ See authors.md for a list of all members.
     <!-- Stage 7: Godfather: ik ben godfather van volgende datasets/users: -->
   <neon-animatable>
     <div class="canvas">
-      <lo-godfather children="{{localapi.godfather}}"></lo-godfather>
+      <lo-godfather id="godf" children="{{localapi.godfather}}"></lo-godfather>
     </div>
   </neon-animatable>
 
@@ -171,10 +171,10 @@ See authors.md for a list of all members.
 
     var app = document.getElementById("app");
 
-    console.log(app);
+    //console.log(app);
 
     var saveEncuserobject = function(e){
-      console.log(e);
+      //console.log(e);
       app.localenc = e;
     };
 
@@ -204,7 +204,7 @@ See authors.md for a list of all members.
       ready: function(){
 
         //Dit staat hier voor de gemakkelijkheid
-        this.pin1 = '1234';
+        //this.pin1 = '1234';
 
         this.loggedin = false;
 
@@ -216,12 +216,12 @@ See authors.md for a list of all members.
         var that = this;
         
         this.addEventListener('change-stage', function(e){
-          console.log('Changing stage', e);
+          //console.log('Changing stage', e);
           that.selected = e.detail.stage;
         });
         
         this.addEventListener('save', function(){
-          console.log('Saving whole dataset: ', this.localapi);
+          //console.log('Saving whole dataset: ', this.localapi);
           //that.localapi = e.detail.dataset;
           that.$.localapielem.writeData();
         });
@@ -252,7 +252,7 @@ See authors.md for a list of all members.
       },
 
       senduserobject: function(){
-        console.log('send user object to: ', partner, ' This value: ', this.localenc);
+        //console.log('send user object to: ', partner, ' This value: ', this.localenc);
         this.localapi.peers.push(this.openfire1+'@'+domein);
         this.localapi.peers.push(partner);
         this.$.localapielem.writeData();
@@ -270,18 +270,22 @@ See authors.md for a list of all members.
           this.addEventListener("got-code", function(f){
             //Hier doet em shit als em een code terug krijgt. 
             //this.$.objectcoll.callback(e.detail);
-            console.log('Got Code.', f.detail.partner);
-            console.log('partner: ', f.detail.partner);
-            console.log('Action to perform: ', e.detail.command);
-            console.log('Dataset: ', e.detail.objectname);
-            console.log('Config: ', e.detail.objectconfig);
-            console.log('Data: ', e.detail.objectdata);
+            // console.log('Got Code.', f.detail.partner);
+            // console.log('partner: ', f.detail.partner);
+            // console.log('Action to perform: ', e.detail.command);
+            // console.log('Dataset: ', e.detail.objectname);
+            // console.log('Config: ', e.detail.objectconfig);
+            // console.log('Data: ', e.detail.objectdata);
+            // console.log('Userid: ', e.detail.userid);
+            // console.log('HASH: ', e.detail.hash);
             var partner = f.detail.partner+"@"+this.domein;
             var command = e.detail.command;
             var objectname = e.detail.objectname;
             var objectdata = e.detail.objectdata;
             var objectconfig = e.detail.objectconfig;
-            loxmpp.sendMessage(partner, command, objectname, objectconfig, objectdata);
+            var userid = e.detail.userid;
+            var hash = e.detail.hash;
+            loxmpp.sendMessage(partner, command, objectname, objectconfig, objectdata, userid, hash);
           });
         // e.target.import is the import document.
         //console.log('import',e);
@@ -302,14 +306,18 @@ See authors.md for a list of all members.
         //   that.openfireconnect = true;        
         // });
 
-        this.$.loxmpp.login();
+        var that = this;
 
-        this.loggedin = true;
+        this.$.loxmpp.login(this.userid, function(){
+          //console.log("logged in");
+          that.loggedin = true;
+ 
+          that.$.localapielem.readData();
+          that.$.godf._children();
+          //console.log("godf func");
+          that.selected = 1;
+        });
         
-        this.$.localapielem.readData();
-
-        this.selected = 1;
-
 
       },   
  
@@ -330,14 +338,14 @@ See authors.md for a list of all members.
     },
 
     _ConfirmGetuige: function(e) {
-      console.log('Yes, bevestigd!', e.target.user);
+      //console.log('Yes, bevestigd!', e.target.user);
       var partner = e.target.user;
       var dataset = e.target.dataset;
       this.sendMessage(partner, "confirmgetuige", dataset, data);
     },
 
     _CancelGetuige: function() {
-      console.log('Neen, annuleren!');
+      //console.log('Neen, annuleren!');
     },
 
      /** * Wordt nog niet gebruikt, maar deze functie doet JOIN in chatroom. */
@@ -353,7 +361,7 @@ See authors.md for a list of all members.
     // },
 
     _addDataset: function(){
-        console.log("add dataset");
+        //console.log("add dataset");
         var config = {};
         config["colors"] = ["blue", "red"];
 
@@ -372,17 +380,23 @@ See authors.md for a list of all members.
       },
 
       msgreceived: function(e){
-        console.log(JSON.stringify(e.detail));
+        //console.log(JSON.stringify(e.detail));
         // {"detail":[{"partner":"8dfb9a50-6107-11e5-aa8c-8da569b7f6e2@opantwerpen.be/7782ea43-1baa-9f7f-4a2e-9fa5cb4edb6f"},{"command":"SYNC"},{"objectname":"null"},{"objectconfig":"null"},{"objectdata":"null"}]}
+        var partner = e.detail.detail[0].partner;
         var command = e.detail.detail[1].command;
         var objectname = e.detail.detail[2].objectname;
+        var objectconfig = e.detail.detail[3].objectconfig;
+        var objectdata = e.detail.detail[4].objectdata;
+        var userid = e.detail.detail[5].userid;
+        var hash = e.detail.detail[6].hash;
+
         var dialog = this.$.lodialog;
 
         if(command){
           switch(command){
             case "SYNC":
               // Een ander toestel wil met dit toestel syncen.
-              console.log("sync request");
+              //console.log("sync request");
               dialog.title = "SYNC?";
               dialog.body = "Een toestel wil synchroniseren met dit toestel.";
               dialog.command = command;
@@ -391,7 +405,7 @@ See authors.md for a list of all members.
             break;
 
             case "SYNCOK":
-              console.log("Sync OK!");
+              //console.log("Sync OK!");
               this.selected = 1;
             break;
 
@@ -399,8 +413,8 @@ See authors.md for a list of all members.
               // I am a sync/peer for this user so I keep myself up to date.
               // Overwrite the local userobject with the one received.
               //if(e.detail.detail.partner!=this.openfire1+"@"+this.domein){
-              console.log("Ik  krijg iets van ", e.detail.detail[0].partner);
-              console.log("normaal ga ik dus nu deze shit overschijven: ", e.detail.detail[4].objectdata);
+              //console.log("Ik  krijg iets van ", e.detail.detail[0].partner);
+              //console.log("normaal ga ik dus nu deze shit overschijven: ", e.detail.detail[4].objectdata);
                this.$.localapielem.encdata = e.detail.detail[4].objectdata;
                 this.localapi.lastupdate = Date.now();
                // window.location = "/";
@@ -408,8 +422,8 @@ See authors.md for a list of all members.
             break;
 
             case "SYNCUPDATE":
-              console.log("Something changed on another device");
-              console.log("Ken ik stage? ", stage);
+              //console.log("Something changed on another device");
+              //console.log("Ken ik stage? ", stage);
               //this.selected = 1;
               this.$.localapielem.encdata = e.detail.detail[4].objectdata;
 
@@ -417,33 +431,39 @@ See authors.md for a list of all members.
 
             case "VALIDATE":
               // Validate the dataset on this device by adding the sender as a peer
-              console.log("validate request from ", partner);
-              console.log('localapi: ', this.localapi.collection);
-              console.log('objectname: ', objectname);
-              console.log('localapi item: ', this.localapi.collection[objectname]);
-              this.localapi.collection[objectname].peers.push(partner);
+              //console.log("validate request from ", partner);
+              //console.log('localapi: ', this.localapi.collection);
+              //console.log('objectname: ', objectname);
+              //console.log('localapi item: ', this.localapi.collection[objectname]);
+              //console.log('peers id: ', e.detail.detail[5].userid);
+              this.localapi.collection[objectname].peers.push(e.detail.detail[5].userid);
               this.localapi.lastupdate = Date.now();
+              this.$.localapielem.writeData();
             break;
 
             case "VERIFY":
               // Another user wants a dataset verified by this user
-              console.log("sync request");
+              //console.log("sync request");
               dialog.title = "VERIFY";
               dialog.body = "Wil je getuige zijn van deze dataset?";
               dialog.command = command;
               dialog.partner = e.detail.detail[0].partner;
               dialog.objectname = e.detail.detail[2].objectname;
+              dialog.objectdata = e.detail.detail[4].objectdata;
+              dialog.userid = e.detail.detail[5].userid;
+              dialog.objectconfig = e.detail.detail[3].objectconfig;
+              dialog.hash = e.detail.detail[6].hash;
               this.selected = 5;
               //app.openDialog("Wil je deze dataset van Kristien valideren?");
             break;
 
             case "DATAUPDATE":
               // The incoming dataset has been updated. This device should update the objectconfig and check whether the objectdata has been changed. When changed, the the verification should be cancelled.
-              console.log("sync request");
+              //console.log("sync request");
               dialog.title = "SYNC?";
               dialog.body = "Een toestel wil synchroniseren met dit toestel.";
               //app.localapi.collection[objectname].peers[partner] = objectconfig;
-              console.log("Een van jouw mignons heeft een dataset veranderd.");
+              //console.log("Een van jouw mignons heeft een dataset veranderd.");
               //if(app.localapi.collection[objectname].data === objectdata);
               //app.localapi.lastupdate = Date.now();
             break;
@@ -453,23 +473,37 @@ See authors.md for a list of all members.
         };
       },
 
+
+      groupmsgreceived: function(e){
+        //console.log(JSON.stringify(e.detail.detail));
+        var user = e.detail.userid;
+        var object = e.detail.object;
+        var hash = e.detail.hash;
+        this.$.godf.checkSum(user, object, hash, function(){
+          //console.log("okay!");
+        });
+      },
+
       cancel: function(){
         this.selected = 4;
       },
 
       processCommand: function(e){
-
         // Dit verwerkt het commando dat door de dialog wordt gestuurd.
         var command = e.detail.command;
         var partner = e.detail.partner;
         var objectname = e.detail.objectname;
+        var objectdata = e.detail.objectdata;
+        var objectconfig = e.detail.objectconfig;
+        var userid2 = e.detail.userid;
+        var hash = e.detail.hash;
         var loxmpp = this.$.loxmpp;
 
-        console.log("Process command: ",command);
+        //console.log("Process command: ",command);
 
         switch(command){
           case "SYNC":
-            console.log("confirmation to ", command, " for ", partner);
+            //console.log("confirmation to ", command, " for ", partner);
 
             this.localapi.peers.push(this.openfire1+'@'+this.domein);
             this.localapi.peers.push(partner);
@@ -481,8 +515,12 @@ See authors.md for a list of all members.
           break;
 
           case "VERIFY":
-            console.log("Ik word getuige van ", partner);
-            loxmpp.sendMessage("profiel@conference.opantwerpen.be", "VALIDATE", objectname, encruserid, data, 'groupchat');
+            //console.log("Ik word getuige van ", userid2);
+            //(user1, user2, objectname, objecthash)
+            loxmpp.sendMessage(partner, "VALIDATE", objectname, null, null, this.userid, null);
+            //loxmpp.sendgroupMessage(this.userid, userid2, objectname, hash);
+            //console.log("dus ik push naar godfather array: ", userid2, objectname, hash);
+            this.localapi.godfather.push({ "child": userid2, "object": objectname, "hash": hash, "valid": true });
             //this.$.localapielem.readData();
           break;
           

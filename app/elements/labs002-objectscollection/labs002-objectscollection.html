@@ -9,7 +9,8 @@ See authors.md for a list of all members.
 <link rel="import" href="../../bower_components/neon-animation/neon-animations.html">
 
 <link rel="import" href="../../bower_components/neon-animation/neon-animatable.html">
-<script src="../../bower_components/object-hash/dist/object_hash.js"></script>
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
+<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
 
 <link rel="import" href="../labs002-renderer/labs002-renderer.html">
 
@@ -92,6 +93,8 @@ See authors.md for a list of all members.
           objectconfig="{{item.array.objectconfig}}" 
           objectcomponent="{{item.array.objectcomponent}}" 
           objectpeers="{{item.array.objectpeers}}"
+          userid="{{userid}}"
+          hash="{{item.array.objecthash}}"
           on-scroll="_Scroll">
         </labs002-renderer>        
 
@@ -105,6 +108,19 @@ See authors.md for a list of all members.
 </dom-module>
 <script>
 (function() {
+
+  function hasher(hashobject){
+    var hash = JSON.stringify(hashobject);
+    var hash = CryptoJS.SHA256(hash);
+    //console.log("te hashen: ", hashobject);
+    //console.log("gehashed: ", hash.toString(CryptoJS.enc.Hex));
+    return hash.toString(CryptoJS.enc.Hex); 
+  };
+
+  var loxmpp;
+
+ 
+
   Polymer({
     is: 'labs002-objectscollection',
 
@@ -140,27 +156,39 @@ See authors.md for a list of all members.
 
       var that = this;
 
-      var hash = require('object-hash');
       
       this.addEventListener('add-getuige', function(e){
-        //console.log(e.detail.dataset);
-        //this.sendMessage(partner, "heresuserobject",this.localenc, this.encruserid);
-        //that._toQReader();
-        this.fire('qr-reader', { command: "VERIFY", objectname: e.detail.objectname, objectconfig: e.detail.objectconfig, objectdata: e.detail.objectdata });
+        this.fire('qr-reader', { 
+          command: "VERIFY", 
+          objectname: e.detail.objectname, 
+          objectconfig: e.detail.objectconfig, 
+          objectdata: e.detail.objectdata,
+          userid: e.detail.userid,
+          hash: e.detail.hash
+        });
       });
 
       this.addEventListener('save-it', function(e){
-        console.log("Save it from objectscollection: ",e.detail.datasetkey);
-        console.log("Hash!",hash('michael'));
-        //this.objectsdata.collection[e.detail.datasetkey].hash = hash.MD5(e.detail.dataset);
+        //console.log("Save it from objectscollection: ",e.detail.datasetkey);
         this.objectsdata.collection[e.detail.datasetkey].data = e.detail.dataset;
+
+        var hash = hasher(this.objectsdata.collection[e.detail.datasetkey].data);
+
         //this.objectsdata[e.detail.datasetname].data
-        console.log("Is it added? ", this.objectsdata);
+        //console.log("Is it added? ", this.objectsdata);
+
+        loxmpp.sendmygroupMessage(this.userid, e.detail.datasetkey, hash);
+
         this.fire('save');
         //that._objectChanged();
       });
 
 
+    },
+
+    attached: function(){
+      loxmpp = document.querySelector("lo-xmpp");
+  //console.log("Objectscollection kent loxmpp: ", loxmpp);
     },
 
     toGod: function(){
@@ -169,11 +197,11 @@ See authors.md for a list of all members.
     },
 
     _log: function(){
-      console.log("Loggedin? ",this.loggedin);
+      //console.log("Loggedin? ",this.loggedin);
     },
 
     _objectChanged: function(){
-      console.log('updated: ',this.objectsdata.collection);
+      //console.log('updated: ',this.objectsdata.collection);
       this.objectsdata_new = [];
       var objectsdata_new = this.objectsdata_new;
       var p = this.objectsdata.collection;
@@ -186,8 +214,10 @@ See authors.md for a list of all members.
             objectconfig: p[key].config,
             objectdata: p[key].data,
             objectpeers: p[key].peers,
-            objectcomponent: p[key].component}
+            objectcomponent: p[key].component,
+            objecthash: hasher(p[key].data) }
           });
+          
           //console.log('New objectsdata: ', objectsdata_new);
         }
       };

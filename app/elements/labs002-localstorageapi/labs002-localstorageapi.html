@@ -86,20 +86,21 @@
 
     writeData: function(){
         var pin = this.pincode.toString();
-        console.log('Localstorage API write: ', this.data);
+        //console.log('Localstorage API write: ', this.data);
         var object = this.data;
         var stringifiedobject = JSON.stringify(object);
-        console.log(stringifiedobject);
+        //console.log(stringifiedobject);
         var encrypted = CryptoJS.AES.encrypt(stringifiedobject, pin);
         //console.log('Localstorage API encrypted: ',encrypted.toString());
         this.encdata = encrypted.toString();
-        var peers = this.data.peers;
-        for (var i = peers.length - 1; i >= 0; i--) {
-          if(peers[i]!=this.deviceid+"@opantwerpen.be"){
-            console.log('Save ook bij: ',peers[i]);
-            this.$.loxmpp.sendMessage(peers[i], "SYNCUPDATE", null, null, this.encdata);
-          };
-        };
+        //var peers = this.data.peers;
+        //this.$.loxmpp.sendgroupMessage(this.userid, "SYNCUPDATE", null, null, this.encdata);
+        // for (var i = peers.length - 1; i >= 0; i--) {
+        //   if(peers[i]!=this.deviceid+"@opantwerpen.be"){
+        //     console.log('Save ook bij: ',peers[i]);
+        //     this.$.loxmpp.sendMessage(peers[i], "SYNCUPDATE", null, null, this.encdata);
+        //   };
+        // };
         this.readData();
     },
 
@@ -111,7 +112,7 @@
         //console.log('Localstorage API read: ', this.encdata);
         var decrypted = CryptoJS.AES.decrypt(this.encdata, pin);
         var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
-        console.log('Localstorage API decrypt: ',decrtostring);
+        //console.log('Localstorage API decrypt: ',decrtostring);
         var data = JSON.parse(decrtostring, function(k, v) {
           //console.log("IETS",k); // log the current property name, the last is "".
           return v;       // return the unchanged property value.
@@ -123,19 +124,19 @@
     },
 
     _encdataChanged: function(){
-      console.log('encdata changed');
+      //console.log('encdata changed');
       this.readData();
     },
 
     _dataChanged: function(){
-      console.log('data changed');
+      //console.log('data changed');
       //this.writeData();
       this.fire("data-changed");
     },
 
     attached: function(){
       app = document.querySelector('#app');
-      console.log("Ken ik app? ",app);
+      //console.log("Ken ik app? ",app);
     }
   });
 })();

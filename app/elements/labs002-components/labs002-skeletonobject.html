@@ -15,10 +15,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     :host {
       display: block;
     }
+
+    button {
+      width: 200px;
+      height: 200px;
+    }
   </style>
 <template>
 <div>Hello from <span>{{objectname}}</span></div>
 <h1>{{username}}</h1>
+<p>HASH: <span>{{objecthash}}</span></p>
 	<input type="text" id="userinput" value="{{objectdata.username}}"/>
 	<button on-tap="save">Save</button>
 
@@ -48,41 +54,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 	      opened: {
 	        type: Boolean,
 	        value: false
-	      }
+	      },
+        objecthash: {
+          type: String
+        }
 
       },
 
 
       ready: function(){
-        console.log('skeleton is ready'); 
+        //console.log('skeleton is ready'); 
       },
  
       _data: function(){
-      	console.log("Observer?", this.objectdata);
+      	//console.log("Observer?", this.objectdata);
       	this.username = this.objectdata.username;
       },
 
       refresh: function(){
-        console.log("REFRESHHHHHMENTS!!");
+        //console.log("REFRESHHHHHMENTS!!");
         this.username = this.objectdata.username;
       },
 
       save: function(){
         this.username = this.$.userinput.value;
-      	console.log('text unput value: ', this.username);
-        console.log('has value: ', this.objectdata["username"]);
+      	//console.log('text unput value: ', this.username);
+        //console.log('has value: ', this.objectdata["username"]);
       	this.objectdata["username"] = this.username; 
-        console.log('new value: ', this.objectdata["username"]);
-      	this.fire('save-it', { datasetkey: this.objectname, dataset: this.objectdata });
+        //console.log('new value: ', this.objectdata["username"]);
+      	this.fire('save-it', { datasetkey: this.objectname, dataset: this.objectdata, hash: this.objecthash });
       },
 
       created: function() {
-    	 console.log(this.localName + '#' + this.id + ' was created');
+    	 //console.log(this.localName + '#' + this.id + ' was created');
   	 },
 
     attached: function() {
       this.async(function() {
-        console.log(this.localName + '#' + this.id + ' was attached');
+        //console.log(this.localName + '#' + this.id + ' was attached');
         //this.selected = 1;
         //this._configChanged();
         //this._dataChanged();
@@ -91,13 +100,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     detached: function() {
       this.async(function() {
-        console.log(this.localName + '#' + this.id + ' was detached');
+        //console.log(this.localName + '#' + this.id + ' was detached');
      });
     },
 
     attributeChanged: function(name, type) {
-      console.log(this.localName + '#' + this.id + ' attribute ' + name +
-        ' was changed to ' + this.getAttribute(name));
+      //console.log(this.localName + '#' + this.id + ' attribute ' + name +
+        //' was changed to ' + this.getAttribute(name));
     }
 
   });

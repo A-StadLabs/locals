@@ -59,49 +59,53 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         me = this;
       },
 
-      login: function(){
+      login: function(userid, fn){
 
         conn = new Openfire.Connection(this.server, function(e){
-          console.log(e);
+          //console.log(e);
         });
 
         var that = this;
 
         conn.connect(this.username, this.password, function(status){
-          console.log(status);
+          //console.log(status);
           if (status === Strophe.Status.CONNECTED) {
               // Als em goed is ingelogd doe dit
               
               conn.send($pres().tree());
-                      console.log("////// ME: ", this.username, " /////////");
+                      //console.log("////// ME: ", this.username, " /////////");
 
               conn.addHandler(that.receiveMessage);
               that.connected = true;
-              that.joinRoom(this.username, this.password, "astadlabs");
+              that.joinRoom(this.username, this.password, userid);
 
               that.loggedin = true;
               fn();
           } else if (status === Strophe.Status.DISCONNECTED) {
             // Als er iets fout ging met login doe dit
-              console.log('--- Diconnected from OpenFire');
+              //console.log('--- Diconnected from OpenFire');
           };
         });
 
       },
 
       joinRoom: function(username, password, room){
-      var that = this;
-      this.room = room;
-      //console.log('--- User joins room "astadlabs"');
-      var room = this.room+"@conference.opantwerpen.be";
-      var nick = username+"@opantwerpen.be";
-      var passwort = password;
-      var history_attrs = null;
-      conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, passwort, history_attrs);
+        var that = this;
+        this.room = room;
+        //console.log('--- User joins room ', room);
+        var room = this.room+"@astadlabs.opantwerpen.be";
+        var nick = username+"@opantwerpen.be";
+        var passwort = password;
+        var history_attrs = null;
+        conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, passwort, history_attrs);
       },
 
+      msg_handler_cb: function(){ return true; },
+      pres_handler_cb: function(){ return true; },
+      roster_cb: function(){ return true; },
+
       receiveMessage: function(msg){
-        console.log(msg);
+        //console.log(msg);
         var that = this;
         var to = msg.getAttribute('to');
         var from = msg.getAttribute('from');
@@ -110,7 +114,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         
         //console.log("Body: ", elems);
         var body = elems[0];
-        if(body!=null){
+        if(body!=null&&type!='groupchat'){
 
           var bodymsg = Strophe.getText(body);
           bodymsg = Strophe.xmlunescape(bodymsg);
@@ -123,23 +127,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var objectname = commandarray[1];
           var objectconfig = commandarray[2];
           var objectdata = commandarray[3];
+          var userid = commandarray[4];
+          var hash = commandarray[5];
 
           //processCommand(partner, command, objectname, objectconfig, objectdata);
           //console.log("processCommand: ", partner, command, objectname, objectconfig, objectdata);
-        };
         me.fire("msg-received", 
           { detail: [{ "partner": partner }, 
                     { "command": command },
                     { "objectname": objectname },
                     { "objectconfig": objectconfig },
-                    { "objectdata": objectdata }]
+                    { "objectdata": objectdata },
+                    { "userid": userid },
+                    { "hash": hash }]
         });
+        return true;
+      } else if(body!=null&&type=='groupchat') {
+        //console.log("group msg received");
+        var bodymsg = Strophe.getText(body);
+        bodymsg = Strophe.xmlunescape(bodymsg);
+
+        var commandarray = bodymsg.split("//");
+
+        var userid = commandarray[0];
+        var objectname = commandarray[1];
+        var hash = commandarray[2];
+
+        me.fire("groupmsg-received", 
+          { "userid": userid,
+          "object": objectname,
+          "hash": hash  });
+
+        return true;
+      };
         return true;
       },
 
-      sendMessage: function(partner, command, objectname, objectconfig, objectdata){
-        console.log("Preparing to send message: ",partner+'//'+command+'//'+objectname+'//'+objectconfig+'//'+objectdata);
-        var message = command+'//'+objectname+'//'+objectconfig+'//'+objectdata;
+      sendMessage: function(partner, command, objectname, objectconfig, objectdata, userid, hash){
+        //console.log("Preparing to send message: ",partner+'//'+command+'//'+objectname+'//'+objectconfig+'//'+objectdata+'//'+userid+'//'+hash);
+        var message = command+'//'+objectname+'//'+objectconfig+'//'+objectdata+'//'+userid+'//'+hash;
         var msg = $msg({
           to: partner
         }).cnode(Strophe.xmlElement('body', message)).up()
@@ -147,15 +173,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         conn.send(msg);
       },
 
-      sendgroupMessage: function(partner, command, objectname, objectconfig, objectdata){
-        console.log("Preparing to send message: ",partner+'//'+command+'//'+objectname+'//'+objectconfig+'//'+objectdata);
-        var message = command+'//'+objectname+'//'+objectconfig+'//'+objectdata;
+      sendgroupMessage: function(user1, user2, objectname, objecthash, objectdata){
+        var to = "peers@astadlabs.opantwerpen.be";
+        //console.log("Preparing to send group message: ",user1+'//'+user2+'//'+objectname+'//'+objecthash);
+        var message = user2+'//'+user1+'//'+objectname+'//'+objecthash;
         var msg = $msg({
-          to: partner,
+          to: to,
           type: 'groupchat'
         }).cnode(Strophe.xmlElement('body', message)).up()
         .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
         conn.send(msg);
+      },
+
+      sendmygroupMessage: function(userid, objectname, objecthash){
+        var to = userid+"@astadlabs.opantwerpen.be";
+        //console.log("Sending update to my own room: ",userid+'//'+objectname+'//'+objecthash);
+        var message = userid+'//'+objectname+'//'+objecthash;
+        var msg = $msg({
+          to: to,
+          type: 'groupchat'
+        }).cnode(Strophe.xmlElement('body', message)).up()
+        .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+        conn.send(msg);
+      },
+
+      createRoom: function(userid, username, password){
+        var that = this;
+        this.room = userid;
+        //console.log('--- User joins room "astadlabs"');
+        var room = this.room+"@astadlabs.opantwerpen.be";
+        var nick = username+"@opantwerpen.be";
+        var passwort = password;
+        var history_attrs = null;
+        conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, passwort, history_attrs);
       }
 
     });
