@@ -1,0 +1,41 @@
+<!-- build:[href] ../polymer/ --><html><head><link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- /build -->
+<dom-module id="mqtt-client-pub">
+  <template>
+        <mqtt-client id="{{ref}}"></mqtt-client>
+    </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'mqtt-client-pub',
+    properties: {
+      message: {
+        type: String,
+        value: '',
+        notify: true
+      },
+      ref: {
+        type: String,
+        value: '',
+        notify: true
+      },
+      topic: {
+        type: String,
+        value: '',
+        notify: true
+      }
+    },
+    // Public Methods
+    go: function () {
+      var ref = this.$[this.ref];
+      if (typeof ref === 'undefined')
+        return;
+      var exp = ref._exp;
+      if (typeof exp === 'undefined' || !exp.isConnected())
+        return;
+      var message = new Paho.MQTT.Message(this.message);
+      message.destinationName = this.topic;
+      exp.mqtt.send(message);
+    }
+  });
+</script><script src="mqttws31.js"></script>
