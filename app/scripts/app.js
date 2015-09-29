@@ -41,55 +41,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     var app = document.querySelector('#app');
   });
 
-  app._ofuserEmpty = function(){
-    //console.log("Openfireuser not found.");
-    importPage("elements/labs002-newopenfireuser/labs002-newopenfireuser.html").then(function(){
-      var element = document.createElement("labs002-newopenfireuser");
-      body.appendChild(element);
-      element._createOpenFireUser();
-    }, function(err){
-      //console.log(err, "error");
-    });
-  };
-
-  app._ofuserFound = function(){
-    //console.log("Openfireuser found.");
-
-    //app.$.loxmpp.login();
-
-    // Eerst checken of er ook al een locals user is aangemaakt.
-    // Anders gaan we een locals user aanmaken. 
-    if(labsuser){
-
-      // We hebben een locals user gevonden.
-      importPage("elements/labs002-stage/labs002-stage.html").then(function(){
-        var element = document.createElement("labs002-stage");
-        element.id = "stage";
-        body.appendChild(element);
-      }, function(err){
-        //console.log(err, "error");
-      });
-    } else {
+  app._nolocaluserFound = function(){
+    
       importPage("elements/lo-newuser/lo-newuser.html").then(function(){
         var element = document.createElement("lo-newuser");
         body.appendChild(element);
       }, function(err){
         //console.log(err, "error");
       });
-    }
   };
 
   app._localuserFound = function(){
-    //console.log("Local user found.");
-    labsuser = true;
+    importPage("elements/labs002-stage/labs002-stage.html").then(function(){
+        var element = document.createElement("labs002-stage");
+        body.appendChild(element);
+      }, function(err){
+        //console.log(err, "error");
+      });
   };
 
-  app.msgreceiver = function(e){
-    //console.log(e.detail);
-  }
   
-
-
-
 
 })(document);

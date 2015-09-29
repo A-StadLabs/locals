@@ -6,8 +6,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
 <script src="../../scripts/crypto-aes.js"></script>
-<link rel="import" href="../lo-xmpp/lo-xmpp.html">
-
+<link rel="import" href="../lo-mqtt/lo-mqtt.html">
 
 <dom-module id="labs002-localstorageapi">
   <style>
@@ -17,13 +16,12 @@
   </style>
   <template>
 
-    <iron-localstorage id="localstorage" name="labs002-data" value="{{encdata}}">
+    <iron-localstorage 
+      id="localstorage" 
+      name="lo-data" value="{{encdata}}" 
+      on-iron-localstorage-load-empty="initEmpty">
   </iron-localstorage>
 
-  <iron-localstorage id="localstorage" name="labs002-user" value="{{encruserid}}">
-  </iron-localstorage>
-
-  <lo-xmpp id="loxmpp"></lo-xmpp>
 
   </template>
 </dom-module>
@@ -52,7 +50,7 @@
         observer: "_userid"
       },
       pincode: {
-        type: Number,
+        type: String,
         observer: "_pincode"
       },
       encdata: {
@@ -85,7 +83,8 @@
     },
 
     writeData: function(){
-        var pin = this.pincode.toString();
+        console.log("Pincode:", this.pincode);
+        var pin = this.pincode;
         //console.log('Localstorage API write: ', this.data);
         var object = this.data;
         var stringifiedobject = JSON.stringify(object);
@@ -108,7 +107,7 @@
         if(!this.encdata){
           this.initEmpty();
         } else {
-        var pin = this.pincode.toString();
+        var pin = this.pincode;
         //console.log('Localstorage API read: ', this.encdata);
         var decrypted = CryptoJS.AES.decrypt(this.encdata, pin);
         var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
@@ -119,6 +118,7 @@
         });
         //console.log(data);
         this.data = data;
+        console.log(data);
         app.render();
       };
     },

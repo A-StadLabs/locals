@@ -13,10 +13,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../dp-pin/dp-pin.html">
 
-<link rel="import" href="../lo-xmpp/lo-xmpp.html">
-
-
-
 <link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-from-right-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-left-animation.html">
@@ -41,40 +37,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <iron-localstorage id="localstorage" name="labs002-user" value="{{encruserid}}">
+    <iron-localstorage id="localstorage" name="lo-public" value="{{publickey}}">
     </iron-localstorage>
 
-     <iron-localstorage 
-      name="labs002-openfire2" 
-      value="{{openfireuser2}}">
+    <iron-localstorage id="localstorage" name="lo-private" value="{{privatekey}}">
     </iron-localstorage>
 
-     <iron-localstorage 
-      name="labs002-openfire1" 
-      value="{{openfireuser1}}"
-      on-iron-localstorage-load="loginOpenfire">
+    <iron-localstorage id="localstorage" name="lo-device" value="{{deviceid}}"
+    on-iron-localstorage-load-empty="createDeviceID">
     </iron-localstorage>
 
-    <iron-localstorage 
-      id="localstorage" 
-      name="labs002-data" 
-      value="{{encdata}}">
-  </iron-localstorage>
-
-    <lo-xmpp id="loxmpp" username="{{openfireuser1}}" password="{{openfireuser2}}" on-msg-received="msgreceived"></lo-xmpp>
-
+    <lo-mqtt connected="{{mqttconnected}}"
+      on-receive-message="msgreceived"
+      topic="{{deviceid}}" id="lomqtt"></lo-mqtt>
 
     <neon-animated-pages id="pages" selected="{{selected}}" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
 
-      <dp-pin on-pin-entered="naarPin2" pin="{{pin1}}" titel="Kies een pincode." error="{{error}}" extrabtn="Ik heb al een toestel geactiveerd" on-naar-activ="naarActivatie"></dp-pin>
-
-      <dp-pin on-pin-entered="naarPinCheck" pin="{{pin2}}" titel="Herhaal de pincode." error="{{error}}">
-        </dp-pin>
+      <neon-animatable>
+        <div class="canvas layout vertical center-center color">
+        <h2>Welkom blablabla</h2>
+        <p>We gaan dan nu een nieuwe user aanmaken is dat goed?</p>
+        <button on-tap="createUser">Ga verder</button>
+        <button on-tap="naarActivatie">Ik heb al een user ergens anders</button>
+      </div>
+      </neon-animatable>
 
       <neon-animatable>
         <div class="canvas layout vertical center-center color">
         <h2>Registratie voltooid.</h2>
         <p>Je hebt een nieuwe gebruiker aangemaakt op dit toestel.</p>
+        <p>Maak een foto van deze qr code</p>
+        <alabs-qrcode code="{{privatekey}}"></alabs-qrcode>
         <button on-tap="reload">Ga verder</button>
       </div>
       </neon-animatable>
@@ -90,7 +83,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   (function() {
     'use strict';
 
-    var domein = "opantwerpen.be";
 
     function importPage(url){
     return new Promise(function(resolve, reject){
@@ -117,59 +109,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         window.location = "/";
       },
 
-      naarPin2: function(){
-        this.selected = 1;
+      createDeviceID: function(){
+        var deviceid = uuid.v4();
+        this.deviceid = deviceid;
       },
 
-      msgreceived: function(e){
-        console.log(e.detail.detail[1].command);
-        var partner = e.detail.detail[0].partner;
-        if(e.detail.detail[1].command){
-          this.encdata = e.detail.detail[4].objectdata;
-          this.encruserid = e.detail.detail[3].objectconfig;
-          //this.$.localstorageapi.lastupdate = Date.now();
-          this.$.loxmpp.sendMessage(partner, "SYNCOK", null, null, null);
-          window.location = "/";
-        };
-      },
-
-      naarPinCheck: function(){
-        if(this.pin1==this.pin2){
-          console.log('Pincodes komen overeen');
-          this.createUser();
-        } else {
-          console.log('Pincodes niet gelijk');
-          this.error = "Pins komen niet overeen.";
-          this.selected = 0;
-          this.pin1 = '';
-          this.pin2 = '';
-        };
-    },
-
+ 
     createUser: function(){
-      var userid = uuid.v1();
-      this.userid = userid;
-      var pincode = this.pin1;
+      var publickey = uuid.v4();
+      this.publickey = publickey;
+      var privatekey = uuid.v4();
+      this.privatekey = privatekey;
       console.log('--- Created UUID ---');
-      console.log('--- userid: ', userid, ' - pincode: ', pincode, ' ---');
-
-      var tmpuserid = CryptoJS.AES.encrypt(userid, pincode);
-      console.log('--- Encrypted UUID ---');
-      this.encruserid = tmpuserid.toString();
-      //this.$.localstorage.value = this.encruserid;
-      console.log('--- Stored encrypted UUID in localstorage ---');
+      console.log('--- publickey: ', this.publickey, ' - privatekey: ', this.privatekey, ' - deviceid: ', this.deviceid, ' ---');
       // Create chatroom for this user
       //this.$.loxmpp.createRoom(userid, this.openfireuser1, this.openfireuser2);
-      this.selected=2;
+      this.selected=1;
     },
 
     naarActivatie: function(){
-      this.$.loxmpp.login(this.userid);
       var that = this;
       importPage("elements/labs002-qrreader/labs002-qrreader.html").then(function(){
         //var element = document.createElement("labs002-stage");
         //body.appendChild(element);
-        that.selected = 3;
+        that.selected = 2;
       }, function(err){
         console.log(err, "error");
       });
@@ -177,9 +140,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     transferUser: function(e){
       console.log("Gonna sync with this user: ", e.detail.partner);
-      var partner = e.detail.partner+'@'+domein;
-      console.log(partner);
-      this.$.loxmpp.sendMessage(partner, "SYNC", null, null, null);
+      //publish topic e.detail.partner body SYNC
+      this.topic = e.detail.partner;
+      var mytopic = this.deviceid;
+      this.$.lomqtt.send(e.detail.partner, "SYNC1+"+mytopic);
+      this.$.lomqtt.subscribe(mytopic);
+      //this.$.loxmpp.sendMessage(partner, "SYNC", null, null, null);
+    },
+
+    msgreceived: function(e){
+      console.log(e.detail.msg);
+      switch(e.detail.msg[0]){
+        case "SYNC1":
+          console.log("Sync request");
+        break;
+        case "SYNC2":
+          console.log("Sync2 request");
+        break;
+      };
     }
 
 

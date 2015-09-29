@@ -15,6 +15,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     :host {
       display: block;
     }
+    neon-animated-pages {
+      height: 100%;
+    }
   </style>
   <template>
     <div id="qrplaceholder"></div>
@@ -26,21 +29,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     is: 'alabs-qrcode',
 
     properties: {
-      code: {
+      qrcode: {
         type: String,
         notify: true,
         observer: 'gotCode'
       }
     },
 
+    ready: function(){
+    },
+
     gotCode: function(){
       var src = this.$.qrplaceholder;
       src.innerHTML = '';
       var img = document.createElement("img");
-      var sourceke = "https://chart.googleapis.com/chart?cht=qr&chs=400x400&chl="+this.code;
+      var sourceke = "https://chart.googleapis.com/chart?cht=qr&chs=400x400&chl="+this.qrcode;
       img.src = sourceke.toString();
       src.appendChild(img);
     }
+
   });
 })();
 </script>

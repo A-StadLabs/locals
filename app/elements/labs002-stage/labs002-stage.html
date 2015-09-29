@@ -12,6 +12,7 @@ See authors.md for a list of all members.
 <link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-from-right-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-left-animation.html">
+<script src="../../bower_components/node-uuid/uuid.js"></script>
 
 <link rel="import" href="../../bower_components/neon-animation/neon-animatable.html">
 
@@ -57,47 +58,40 @@ See authors.md for a list of all members.
 
   <iron-localstorage 
     id="localstorage" 
-    name="labs002-user" 
-    value="{{encruserid}}">
+    name="lo-public"
+    value="{{publickey}}">
   </iron-localstorage>
 
   <iron-localstorage 
-    id="openfire1" 
-    name="labs002-openfire1" 
-    value="{{openfire1}}">
+    id="localstorage" 
+    name="lo-private" 
+    value="{{privatekey}}">
   </iron-localstorage>
-  
+
   <iron-localstorage 
-    id="openfire2" 
-    name="labs002-openfire2" 
-    value="{{openfire2}}"
-    on-iron-localstorage-load="loginOpenfire">
+    id="localstorage" 
+    name="lo-device" 
+    value="{{deviceid}}">
   </iron-localstorage>
 
   <labs002-localstorageapi 
     id="localapielem" 
-    userid="{{userid}}" 
-    pincode="{{pin1}}" 
+    userid="{{publickey}}" 
+    pincode="{{privatekey}}" 
     data="{{localapi}}" 
     encdata="{{localenc}}"
-    deviceid="{{openfire1}}">
+    deviceid="{{deviceid}}">
   </labs002-localstorageapi>
 
-  <lo-xmpp id="loxmpp" username="{{openfire1}}" password="{{openfire2}}" on-msg-received="msgreceived" on-groupmsg-received="groupmsgreceived"></lo-xmpp>
+  <lo-mqtt connected="{{mqttconnected}}"
+  on-receive-message="msgreceived"
+  topic="{{publickey}}" id="lomqtt"></lo-mqtt>
 
-  <lo-mqtt></lo-mqtt>
-
-  <small>{{userid}}</small>
 
   <neon-animated-pages id="pages" selected="{{selected}}" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
 
 
-
-  <!-- Stage 0: Pincode ingeven (bestaande gebruiker) -->
-  <dp-pin on-yes="toggleDrawer" on-pin-entered="decryptUser" pin="{{pin1}}" titel="Geef je pincode in." error="{{error}}">
-  </dp-pin>
-
-  <!-- Stage 1: Alle datasets renderen -->
+  <!-- Stage 0: Alle datasets renderen -->
 <!--   <button on-tap="_addDataset">+</button>
  -->  <labs002-objectscollection 
     id="objectcoll" 
@@ -107,25 +101,26 @@ See authors.md for a list of all members.
     loggedin="{{loggedin}}">
   </labs002-objectscollection>
 
-  <!-- Stage 2: De geopende state van het object -->
+  <!-- Stage 1: De geopende state van het object -->
   <div id="objectplaceholder"></div>
 
-  <!-- Stage 3: QR code lezer -->
+  <!-- Stage 2: QR code lezer -->
   <neon-animatable>
     <div class="canvas">
       <labs002-qrreader></labs002-qrreader>
     </div>
   </neon-animatable>
 
-  <!-- Stage 4: QR code / Identificatie weergeven -->
+  <!-- Stage 3: QR code / Identificatie weergeven -->
   <neon-animatable>
-    <div class="canvas">
+    <div>
       <button on-tap="_toWhere">back</button>
-      <alabs-qrcode code="{{openfire1}}"></alabs-qrcode>
+      <alabs-qrcode qrcode="{{qrcode}}"></alabs-qrcode>
+      <button on-tap="show1">Private</button>
     </div>
   </neon-animatable>
 
-  <!-- Stage 5: Dialog: actie goedkeuren of weigeren. -->
+  <!-- Stage 4: Dialog: actie goedkeuren of weigeren. -->
   <lo-dialog 
     id="lodialog" 
     title="Bevestigen?" 
@@ -135,14 +130,14 @@ See authors.md for a list of all members.
     on-dialog-cancel="cancel">
   </lo-dialog>
   
-  <!-- Stage 6: Plusmenu om objecten toe te voegen. -->
+  <!-- Stage 5: Plusmenu om objecten toe te voegen. -->
   <neon-animatable>
     <div class="canvas">
       <labs002-objectpicker userobjects="{{localapi}}"></labs002-objectpicker>
     </div>
   </neon-animatable>
 
-    <!-- Stage 7: Godfather: ik ben godfather van volgende datasets/users: -->
+    <!-- Stage 6: Godfather: ik ben godfather van volgende datasets/users: -->
   <neon-animatable>
     <div class="canvas">
       <lo-godfather id="godf" children="{{localapi.godfather}}"></lo-godfather>
@@ -195,18 +190,23 @@ See authors.md for a list of all members.
         domein: {
           type: String,
           value: "opantwerpen.be"
+        },
+        deviceid: {
+          type: String,
+          observer: "_deviceid"
         }
 
       },
 
       /**
      * Ready function to declare some variables and setup event listeners.
-     */
+     */show1: function(){
+      this.show = 1;
+     },
 
       ready: function(){
 
         //Dit staat hier voor de gemakkelijkheid
-        //this.pin1 = '1234';
 
         this.loggedin = false;
 
@@ -231,7 +231,7 @@ See authors.md for a list of all members.
         this.addEventListener('object-picker', function(){
           importPage("elements/labs002-objectpicker/labs002-objectpicker.html").then(function(){
               //that._addDataset();
-              that.selected = 6;
+              that.selected = 5;
             }, function(err){
               console.log(err, "error");
             });
@@ -253,6 +253,10 @@ See authors.md for a list of all members.
         stage = document.querySelector("labs002-stage");
       },
 
+      _deviceid: function(){
+        this.$.lomqtt.subscribe(this.deviceid);
+      },
+
       senduserobject: function(){
         //console.log('send user object to: ', partner, ' This value: ', this.localenc);
         this.localapi.peers.push(this.openfire1+'@'+domein);
@@ -266,7 +270,6 @@ See authors.md for a list of all members.
 
       _qrreader: function(e){
 
-         var loxmpp = this.$.loxmpp;
 
         this.importHref("../elements/labs002-qrreader/labs002-qrreader.html", function(g) {
           this.addEventListener("got-code", function(f){
@@ -295,49 +298,27 @@ See authors.md for a list of all members.
         //console.log('import',e);
         // loading error
       });
-        changeStage(3);
+        changeStage(2);
       },
 
-      /** * Userobject decrypteren met ingegeven pin code */
-      decryptUser: function(){
-        var decrypted = CryptoJS.AES.decrypt(this.encruserid, this.pin1);
-        var decrtostring = decrypted.toString(CryptoJS.enc.Utf8);
-        
-        this.userid = decrtostring;
-        // loginOpenfire(this.openfire1, this.openfire2, function(){
-        //   that.openfireconnect = true;        
-        // });
-
-        var that = this;
-
-        this.$.loxmpp.login(this.userid, function(){
-          //console.log("logged in");
-          that.loggedin = true;
- 
-          that.$.localapielem.readData();
-          that.$.godf._children();
-          //console.log("godf func");
-          that.selected = 1;
-          changeStage(1);
-        });
-        
-
-      },   
- 
+    
       // Navigational stuff
       /** * This one shows the qr code associated with this device */
       _toQR:function(){
-        this.selected = 4;
+        this.selected = 3;
+        this.qrcode = uuid.v1();
+        this.$.lomqtt.subscribe(this.qrcode);
+        this.$.lomqtt.send(this.qrcode, "hallo ik ben er en wacht op instructies");
       },
 
     _toWhere:function(){
       this.entryAnimation = 'slide-from-left-animation';
       this.exitAnimation = 'slide-right-animation';
-      this.selected = 1;
+      this.selected = 0;
     },
 
     _toScanner: function(){
-      this.selected = 3;
+      this.selected = 2;
     },
 
     _ConfirmGetuige: function(e) {
@@ -383,6 +364,15 @@ See authors.md for a list of all members.
       },
 
       msgreceived: function(e){
+        console.log('MSG: ', e.detail.msg);
+        var msg = e.detail.msg;
+        if(msg[0]=="SYNC1"){
+          this.qrcode = this.publickey;
+        };
+        this.$.lomqtt.send(msg[1], "SYNC2");
+      },
+
+      __msgreceived: function(e){
         //console.log(JSON.stringify(e.detail));
         // {"detail":[{"partner":"8dfb9a50-6107-11e5-aa8c-8da569b7f6e2@opantwerpen.be/7782ea43-1baa-9f7f-4a2e-9fa5cb4edb6f"},{"command":"SYNC"},{"objectname":"null"},{"objectconfig":"null"},{"objectdata":"null"}]}
         var partner = e.detail.detail[0].partner;

@@ -59,22 +59,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <span id="browser-sync-binding"></span>
   <template is="dom-bind" id="app">
 
-     <iron-localstorage name="labs002-user" value="{{labsuser}}"
-     on-iron-localstorage-load="_localuserFound">
+     <iron-localstorage name="lo-public" value="{{louser}}"
+     on-iron-localstorage-load="_localuserFound"
+     on-iron-localstorage-load-empty="_nolocaluserFound">
      </iron-localstorage>
 
-      <iron-localstorage 
-      name="labs002-openfire2" 
-      value="{{openfireuser2}}">
-    </iron-localstorage>
-
-     <iron-localstorage 
-      name="labs002-openfire1" 
-      value="{{openfireuser}}"
-      on-iron-localstorage-load-empty="_ofuserEmpty"
-      on-iron-localstorage-load="_ofuserFound">
-    </iron-localstorage>
-
+     <lo-mqtt connected="{{mqttconnected}}"></lo-mqtt>
 
   </template>
 

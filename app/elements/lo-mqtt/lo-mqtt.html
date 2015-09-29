@@ -19,43 +19,92 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
       }
     </style>
-    <div>Hello from <span>{{foo}}</span></div>
+    <div>MQTT: <span>{{connected}}</span></div>
   </template>
   <script>
   (function() {
     'use strict';
 
+
+    var me;
+
+    var client;
+
+    var topic;
+
+    function connectthis(){
+
+
     if (location.search == '?ws') {
-          var ws = new WebSocket('ws://opantwerpen.be:15674/ws');
-      } else {
-          var ws = new SockJS('http://opantwerpen.be:15674/stomp');
-      }
-      var client = Stomp.over(ws);
+        var ws = new WebSocket('ws://opantwerpen.be:15674/ws');
+    } else {
+        var ws = new SockJS('http://opantwerpen.be:15674/stomp');
+    }
+    client = Stomp.over(ws);
 
-      // SockJS does not support heart-beat: disable heart-beats
-      if (location.search != '?ws') {
-          client.heartbeat.outgoing = 0;
-          client.heartbeat.incoming = 0;
-      }
+    // SockJS does not support heart-beat: disable heart-beats
+    if (location.search != '?ws') {
+        client.heartbeat.outgoing = 0;
+        client.heartbeat.incoming = 0;
+    }
 
-      var on_connect = function(x) {
-          console.log('connected');
-      };
-      var on_error =  function() {
-        console.log('error');
-      };
-      client.connect('guest', 'guest', on_connect, on_error, '/');
+    client.connect('guest', 'guest', me.on_connect, me.on_error, '/');   
+
+    }
 
     Polymer({
       is: 'lo-mqtt',
 
       properties: {
-        foo: {
-          type: String,
-          value: 'lo-mqtt',
+        autoConnect: {
+          type: Boolean,
+          value: false
+        },
+        connected: {
+          type: Boolean,
+          value: false,
           notify: true
+        },
+        topic: {
+          type: String,
+          observer: "_topic"
         }
+      },
+
+      attached: function(){
+        var that = this;
+        me = document.querySelector("#lomqtt");
+        connectthis();
+      },
+
+      _topic: function(){
+        topic = this.topic;
+      },
+
+      on_connect: function(){
+        console.log("Connected");
+        me.connected = true;
+        me.subscribe(topic);
+      },
+
+      on_error: function(){
+        console.log("Error / Disconnect");
+        me.connected = false;
+      },
+
+      subscribe: function(topic){
+        console.log("Im subscribing to ", topic);
+        client.subscribe(topic, function(d) {
+          var msg = d.body.split("+");
+          me.fire('receive-message', {msg: msg});
+        });
+      },
+
+      send: function(topic, data){
+        client.send(topic, {"content-type":"text/plain"}, data);
       }
+
+
     });
   })();
   </script>
