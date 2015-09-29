@@ -1,0 +1,62 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+  <script src="//cdn.jsdelivr.net/sockjs/1.0.3/sockjs.min.js"></script>
+  <script src="../../scripts/stomp.js"></script>
+
+<dom-module id="lo-mqtt">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div>Hello from <span>{{foo}}</span></div>
+  </template>
+  <script>
+  (function() {
+    'use strict';
+
+    if (location.search == '?ws') {
+          var ws = new WebSocket('ws://opantwerpen.be:15674/ws');
+      } else {
+          var ws = new SockJS('http://opantwerpen.be:15674/stomp');
+      }
+      var client = Stomp.over(ws);
+
+      // SockJS does not support heart-beat: disable heart-beats
+      if (location.search != '?ws') {
+          client.heartbeat.outgoing = 0;
+          client.heartbeat.incoming = 0;
+      }
+
+      var on_connect = function(x) {
+          console.log('connected');
+      };
+      var on_error =  function() {
+        console.log('error');
+      };
+      client.connect('guest', 'guest', on_connect, on_error, '/');
+
+    Polymer({
+      is: 'lo-mqtt',
+
+      properties: {
+        foo: {
+          type: String,
+          value: 'lo-mqtt',
+          notify: true
+        }
+      }
+    });
+  })();
+  </script>
+</dom-module>
