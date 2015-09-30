@@ -20,7 +20,7 @@
       id="localstorage" 
       name="lo-data" value="{{encdata}}" 
       on-iron-localstorage-load-empty="initEmpty">
-  </iron-localstorage>
+    </iron-localstorage>
 
 
   </template>
@@ -30,6 +30,7 @@
 
   var stage;
   var app;
+  var lomqtt;
 
   window.addEventListener('WebComponentsReady', function() {
       // imports are loaded and elements have been registered
@@ -83,6 +84,8 @@
     },
 
     writeData: function(){
+        lomqtt = document.querySelector("lo-mqtt");
+
         console.log("Pincode:", this.pincode);
         var pin = this.pincode;
         //console.log('Localstorage API write: ', this.data);
@@ -92,6 +95,9 @@
         var encrypted = CryptoJS.AES.encrypt(stringifiedobject, pin);
         //console.log('Localstorage API encrypted: ',encrypted.toString());
         this.encdata = encrypted.toString();
+        var topic = this.userid+"/userobject";
+        console.log(topic);
+        lomqtt.send(this.userid, this.encdata);
         //var peers = this.data.peers;
         //this.$.loxmpp.sendgroupMessage(this.userid, "SYNCUPDATE", null, null, this.encdata);
         // for (var i = peers.length - 1; i >= 0; i--) {

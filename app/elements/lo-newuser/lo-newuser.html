@@ -48,6 +48,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </iron-localstorage>
 
     <lo-mqtt connected="{{mqttconnected}}"
+      auto-connect
+      deviceid="{{deviceid}}"
       on-receive-message="msgreceived"
       topic="{{deviceid}}" id="lomqtt"></lo-mqtt>
 
@@ -143,7 +145,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       //publish topic e.detail.partner body SYNC
       this.topic = e.detail.partner;
       var mytopic = this.deviceid;
-      this.$.lomqtt.send(e.detail.partner, "SYNC1+"+mytopic);
+      this.$.lomqtt.send(e.detail.partner, "SYNC1|"+mytopic);
       this.$.lomqtt.subscribe(mytopic);
       //this.$.loxmpp.sendMessage(partner, "SYNC", null, null, null);
     },

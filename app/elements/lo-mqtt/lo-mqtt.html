@@ -19,7 +19,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
       }
     </style>
-    <div>MQTT: <span>{{connected}}</span></div>
+    <!-- <div>MQTT: <span>{{connected}}</span></div> -->
   </template>
   <script>
   (function() {
@@ -31,6 +31,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     var client;
 
     var topic;
+    var deviceid;
 
     function connectthis(){
 
@@ -63,28 +64,48 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         connected: {
           type: Boolean,
           value: false,
-          notify: true
+          notify: true,
+          observer: "_connected"
         },
         topic: {
           type: String,
           observer: "_topic"
+        },
+        deviceid: {
+          type: String,
+          observer: "_deviceid"
         }
       },
 
       attached: function(){
         var that = this;
         me = document.querySelector("#lomqtt");
-        connectthis();
+        if(this.autoConnect){
+          connectthis();
+        };
+      },
+
+      _connected: function(){
+        if(this.connected){
+          console.log("sending ping");
+          this.send(this.topic, "im here");
+          this.subscribe(deviceid);
+        }
       },
 
       _topic: function(){
         topic = this.topic;
       },
 
+      _deviceid: function(){
+        deviceid = this.deviceid;
+      },
+
       on_connect: function(){
         console.log("Connected");
         me.connected = true;
         me.subscribe(topic);
+        me.subscribe(deviceid);
       },
 
       on_error: function(){
@@ -93,14 +114,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       subscribe: function(topic){
-        console.log("Im subscribing to ", topic);
         client.subscribe(topic, function(d) {
-          var msg = d.body.split("+");
+          console.log("Im subscribing to ", topic);
+          //me.send(topic, "ahlo");
+          var msg = d.body.split("|");
           me.fire('receive-message', {msg: msg});
+          console.log(msg);
         });
       },
 
       send: function(topic, data){
+        console.log("sending msg to ", topic, "data: ", data);
         client.send(topic, {"content-type":"text/plain"}, data);
       }
 

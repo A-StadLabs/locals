@@ -5,9 +5,7 @@ See authors.md for a list of all members.
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <script src="../../scripts/crypto-aes.js"></script>
 
-<link rel="import" href="../dp-pin/dp-pin.html">
 
-<link rel="import" href="../lo-xmpp/lo-xmpp.html">
 
 <link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/slide-from-right-animation.html">
@@ -83,13 +81,12 @@ See authors.md for a list of all members.
     deviceid="{{deviceid}}">
   </labs002-localstorageapi>
 
-  <lo-mqtt connected="{{mqttconnected}}"
+  <lo-mqtt auto-connect connected="{{mqttconnected}}"
   on-receive-message="msgreceived"
+  deviceid="{{deviceid}}"
   topic="{{publickey}}" id="lomqtt"></lo-mqtt>
 
-
   <neon-animated-pages id="pages" selected="{{selected}}" class="color" entry-animation="{{entryAnimation}}" exit-animation="{{exitAnimation}}">
-
 
   <!-- Stage 0: Alle datasets renderen -->
 <!--   <button on-tap="_addDataset">+</button>
@@ -112,11 +109,10 @@ See authors.md for a list of all members.
   </neon-animatable>
 
   <!-- Stage 3: QR code / Identificatie weergeven -->
-  <neon-animatable>
+  <neon-animatable style="background-color: white">
     <div>
       <button on-tap="_toWhere">back</button>
-      <alabs-qrcode qrcode="{{qrcode}}"></alabs-qrcode>
-      <button on-tap="show1">Private</button>
+      <alabs-qrcode qrcode="{{deviceid}}"></alabs-qrcode>
     </div>
   </neon-animatable>
 
@@ -159,7 +155,6 @@ See authors.md for a list of all members.
     });
   };
 
-    var conn; 
 
     var partner;
 
@@ -254,17 +249,11 @@ See authors.md for a list of all members.
       },
 
       _deviceid: function(){
-        this.$.lomqtt.subscribe(this.deviceid);
+        console.log("got device id");
+        //this.$.lomqtt.subscribe(this.deviceid);
       },
 
-      senduserobject: function(){
-        //console.log('send user object to: ', partner, ' This value: ', this.localenc);
-        this.localapi.peers.push(this.openfire1+'@'+domein);
-        this.localapi.peers.push(partner);
-        this.$.localapielem.writeData();
-        this.sendMessage(partner, "heresuserobject",this.localenc, this.encruserid);
-        this.$.localapielem.readData();
-      },
+     
 
       /** * Dees functie opent de qr reader en wacht tot em iets terug krijgt. */
 
@@ -306,8 +295,8 @@ See authors.md for a list of all members.
       /** * This one shows the qr code associated with this device */
       _toQR:function(){
         this.selected = 3;
-        this.qrcode = uuid.v1();
-        this.$.lomqtt.subscribe(this.qrcode);
+        //this.qrcode = uuid.v1();
+        //this.$.lomqtt.subscribe(this.qrcode);
         this.$.lomqtt.send(this.qrcode, "hallo ik ben er en wacht op instructies");
       },
 
@@ -332,69 +321,40 @@ See authors.md for a list of all members.
       //console.log('Neen, annuleren!');
     },
 
-     /** * Wordt nog niet gebruikt, maar deze functie doet JOIN in chatroom. */
-    // joinRoom: function(username, password, room){
-    //   var that = this;
-    //   this.room = room;
-    //   //console.log('--- User joins room "astadlabs"');
-    //   var room = this.room+"@conference.kingflurkel.dtdns.net";
-    //   var nick = username+"@kingflurkel.dtdns.net";
-    //   var password = password;
-    //   var history_attrs = null;
-    //   conn.muc.join(room, nick, that.msg_handler_cb, that.pres_handler_cb, that.roster_cb, password, history_attrs);
-    // },
 
-    _addDataset: function(){
-        //console.log("add dataset");
-        var config = {};
-        config["colors"] = ["blue", "red"];
-
-        var objectdata = {};
-        objectdata["username"] = "kingflurkel";
-
-        var object = {};
-        object["name"] = "SkeletonObject";
-        object["data"] = objectdata;
-        object["config"] = config;
-        object["peers"] = [];
-        object["component"] = "labs002-skeletonobject";
-
-        this.localapi.collection[object.name] = object;
-        this.$.localapielem.writeData();
-      },
+      // msgreceived: function(e){
+      //   console.log('MSG: ', e.detail.msg);
+      //   var msg = e.detail.msg;
+      //   if(msg[0]=="SYNC1"){
+      //     this.qrcode = this.publickey;
+      //   };
+      //   this.$.lomqtt.send(msg[1], "SYNC2");
+      // },
 
       msgreceived: function(e){
-        console.log('MSG: ', e.detail.msg);
-        var msg = e.detail.msg;
-        if(msg[0]=="SYNC1"){
-          this.qrcode = this.publickey;
-        };
-        this.$.lomqtt.send(msg[1], "SYNC2");
-      },
-
-      __msgreceived: function(e){
         //console.log(JSON.stringify(e.detail));
         // {"detail":[{"partner":"8dfb9a50-6107-11e5-aa8c-8da569b7f6e2@opantwerpen.be/7782ea43-1baa-9f7f-4a2e-9fa5cb4edb6f"},{"command":"SYNC"},{"objectname":"null"},{"objectconfig":"null"},{"objectdata":"null"}]}
-        var partner = e.detail.detail[0].partner;
-        var command = e.detail.detail[1].command;
-        var objectname = e.detail.detail[2].objectname;
-        var objectconfig = e.detail.detail[3].objectconfig;
-        var objectdata = e.detail.detail[4].objectdata;
-        var userid = e.detail.detail[5].userid;
-        var hash = e.detail.detail[6].hash;
+
+        var partner = e.detail.msg[1];
+        var command = e.detail.msg[0];
+        // var objectname = e.detail.detail[2].objectname;
+        // var objectconfig = e.detail.detail[3].objectconfig;
+        // var objectdata = e.detail.detail[4].objectdata;
+        // var userid = e.detail.detail[5].userid;
+        // var hash = e.detail.detail[6].hash;
 
         var dialog = this.$.lodialog;
 
         if(command){
           switch(command){
-            case "SYNC":
+            case "SYNC1":
               // Een ander toestel wil met dit toestel syncen.
               //console.log("sync request");
               dialog.title = "SYNC?";
               dialog.body = "Een toestel wil synchroniseren met dit toestel.";
               dialog.command = command;
-              dialog.partner = e.detail.detail[0].partner;
-              this.selected = 5;
+              dialog.partner = partner;
+              this.selected = 4;
             break;
 
             case "SYNCOK":
@@ -467,16 +427,6 @@ See authors.md for a list of all members.
       },
 
 
-      groupmsgreceived: function(e){
-        //console.log(JSON.stringify(e.detail.detail));
-        var user = e.detail.userid;
-        var object = e.detail.object;
-        var hash = e.detail.hash;
-        this.$.godf.checkSum(user, object, hash, function(){
-          //console.log("okay!");
-        });
-      },
-
       cancel: function(){
         this.selected = 4;
       },
@@ -519,7 +469,27 @@ See authors.md for a list of all members.
           
         };
         
+      },
+
+    _addDataset: function(){
+        //console.log("add dataset");
+        var config = {};
+        config["colors"] = ["blue", "red"];
+
+        var objectdata = {};
+        objectdata["username"] = "kingflurkel";
+
+        var object = {};
+        object["name"] = "SkeletonObject";
+        object["data"] = objectdata;
+        object["config"] = config;
+        object["peers"] = [];
+        object["component"] = "labs002-skeletonobject";
+
+        this.localapi.collection[object.name] = object;
+        this.$.localapielem.writeData();
       }
+
 
     });
 })();

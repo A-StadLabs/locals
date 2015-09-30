@@ -17,6 +17,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
       }
     </style>
+    <button on-tap="back">Back</button>
     <h1>Godfather of: </h1>
     <template is="dom-repeat" items="{{children}}">
       <div>USERID Child: <span>{{item.child}}</span>
@@ -30,7 +31,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     'use strict';
 
 
-    var loxmpp;
+    var lomqtt;
 
     Polymer({
       is: 'lo-godfather',
@@ -44,15 +45,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       attached: function(){
-        loxmpp = document.querySelector("lo-xmpp");
+        lomqtt = document.querySelector("lo-mqtt");
         //console.log("Godfather kent loxmpp: ", loxmpp);
+      },
+      
+      back: function(){
+        this.fire('change-stage', {stage: 0});
       },
 
       _children: function(){
         for (var i = this.children.length - 1; i >= 0; i--) {
           //let's check in on my chilren.
           //console.log("Joining room: ",this.children[i].child, " i am ", loxmpp.username);
-          loxmpp.joinRoom("godfather", loxmpp.password, this.children[i].child);
+          //loxmpp.joinRoom("godfather", loxmpp.password, this.children[i].child);
+          loxmpp.subscribe(this.children[i].child);
         };
       },
 
