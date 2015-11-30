@@ -52,8 +52,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   app._localuserFound = function(){
-    importPage("elements/labs002-stage/labs002-stage.html").then(function(){
-        var element = document.createElement("labs002-stage");
+    importPage("elements/lo-stage/lo-stage.html").then(function(){
+        var element = document.createElement("lo-stage");
         body.appendChild(element);
       }, function(err){
         //console.log(err, "error");

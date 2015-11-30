@@ -334,9 +334,10 @@ See authors.md for a list of all members.
       msgreceived: function(e){
         //console.log(JSON.stringify(e.detail));
         // {"detail":[{"partner":"8dfb9a50-6107-11e5-aa8c-8da569b7f6e2@opantwerpen.be/7782ea43-1baa-9f7f-4a2e-9fa5cb4edb6f"},{"command":"SYNC"},{"objectname":"null"},{"objectconfig":"null"},{"objectdata":"null"}]}
+        var commandarray = e.detail.msg.split("|");
 
-        var partner = e.detail.msg[1];
-        var command = e.detail.msg[0];
+        var partner = commandarray[1];
+        var command = commandarray[0];
         // var objectname = e.detail.detail[2].objectname;
         // var objectconfig = e.detail.detail[3].objectconfig;
         // var objectdata = e.detail.detail[4].objectdata;
